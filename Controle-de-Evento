@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Controle de Presença</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --black: #000000;
+            --gray-900: #1a1a1a;
+            --gray-700: #4d4d4d;
+            --gray-600: #666666;
+            --gray-500: #808080;
+            --gray-400: #999999;
+            --gray-300: #cccccc;
+            --gray-200: #e6e6e6;
+            --gray-100: #f5f5f5;
+            --white: #ffffff;
+            --accent-success: #00cc44;
+            --accent-danger: #ff3333;
+            --font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            --font-weight-regular: 400;
+            --font-weight-medium: 500;
+            --font-weight-semibold: 600;
+            --font-weight-bold: 700;
+            --font-weight-black: 900;
+            --space-unit: 8px;
+            --space-1: calc(var(--space-unit) * 1);
+            --space-2: calc(var(--space-unit) * 2);
+            --space-3: calc(var(--space-unit) * 3);
+            --space-4: calc(var(--space-unit) * 4);
+            --space-5: calc(var(--space-unit) * 5);
+            --space-6: calc(var(--space-unit) * 6);
+            --space-8: calc(var(--space-unit) * 8);
+            --line-height-tight: 1.2;
+            --line-height-normal: 1.5;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--white);
+            color: var(--gray-900);
+            line-height: var(--line-height-normal);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-8) var(--space-4);
+        }
+
+        .heading-1 {
+            font-size: clamp(32px, 5vw, 48px);
+            font-weight: var(--font-weight-black);
+            letter-spacing: -2px;
+            line-height: var(--line-height-tight);
+            text-transform: uppercase;
+            color: var(--black);
+        }
+
+        .heading-2 {
+            font-size: clamp(24px, 4vw, 32px);
+            font-weight: var(--font-weight-bold);
+            letter-spacing: -1px;
+            text-transform: uppercase;
+            color: var(--black);
+        }
+
+        .label {
+            font-size: 11px;
+            font-weight: var(--font-weight-bold);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--gray-600);
+        }
+
+        .body-text-small {
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        .header {
+            margin-bottom: var(--space-6);
+            padding-bottom: var(--space-4);
+            border-bottom: 3px solid var(--black);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+        }
+
+        .auto-save {
+            font-size: 11px;
+            color: var(--accent-success);
+            text-transform: uppercase;
+        }
+
+        .section {
+            margin-bottom: var(--space-6);
+        }
+
+        .section-header {
+            margin-bottom: var(--space-4);
+            padding-bottom: var(--space-2);
+            border-bottom: 2px solid var(--gray-900);
+        }
+
+        .tabs-wrapper {
+            margin-bottom: var(--space-6);
+            border-bottom: 2px solid var(--gray-300);
+            overflow-x: auto;
+        }
+
+        .tabs {
+            display: flex;
+            gap: var(--space-1);
+            min-width: min-content;
+        }
+
+        .tab {
+            padding: var(--space-2) var(--space-3);
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            font-weight: var(--font-weight-bold);
+            color: var(--gray-600);
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            color: var(--black);
+            border-bottom-color: var(--black);
+        }
+
+        .tab-close {
+            margin-left: var(--space-1);
+            color: var(--accent-danger);
+        }
+
+        .tab.new-tab {
+            margin-left: auto;
+            color: var(--accent-success);
+        }
+
+        .choice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-3);
+        }
+
+        .choice-card {
+            background: var(--gray-100);
+            border: 3px solid var(--gray-300);
+            padding: var(--space-4);
+            cursor: pointer;
+            min-height: 200px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(0, 0, 0, 0.03) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .choice-card:hover {
+            border-color: var(--black);
+            background: var(--white);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .choice-card:hover::after {
+            opacity: 1;
+        }
+
+        .choice-card.selected {
+            border-color: var(--black);
+            background: var(--white);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .choice-icon {
+            font-size: 48px;
+            margin-bottom: var(--space-2);
+        }
+
+        .choice-title {
+            font-size: 20px;
+            font-weight: var(--font-weight-black);
+            text-transform: uppercase;
+            margin-bottom: var(--space-2);
+        }
+
+        .choice-description {
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        .import-section, .manual-section {
+            background: var(--gray-100);
+            border: 2px solid var(--gray-900);
+            padding: var(--space-4);
+            margin-bottom: var(--space-6);
+            display: none;
+        }
+
+        .import-section.active, .manual-section.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: var(--space-3);
+        }
+
+        .input, textarea {
+            width: 100%;
+            padding: var(--space-2);
+            border: 2px solid var(--gray-300);
+            background: var(--white);
+            font-size: 14px;
+            font-weight: var(--font-weight-medium);
+            font-family: var(--font-family);
+            color: var(--gray-900);
+        }
+
+        .input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--black);
+        }
+
+        .btn {
+            padding: var(--space-2) var(--space-3);
+            border: 2px solid var(--black);
+            background: var(--white);
+            font-size: 13px;
+            font-weight: var(--font-weight-bold);
+            font-family: var(--font-family);
+            color: var(--black);
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .btn:hover {
+            background: var(--black);
+            color: var(--white);
+        }
+
+        .btn-primary {
+            background: var(--black);
+            color: var(--white);
+        }
+
+        .btn-success {
+            border-color: var(--accent-success);
+            color: var(--accent-success);
+        }
+
+        .btn-success:hover {
+            background: var(--accent-success);
+            color: var(--white);
+        }
+
+        .btn-danger {
+            border-color: var(--accent-danger);
+            color: var(--accent-danger);
+        }
+
+        .btn-danger:hover {
+            background: var(--accent-danger);
+            color: var(--white);
+        }
+
+        .btn-small {
+            padding: var(--space-1) var(--space-2);
+            font-size: 11px;
+        }
+
+        .manual-entry-row {
+            background: var(--white);
+            border: 2px solid var(--gray-300);
+            padding: var(--space-2);
+            margin-bottom: var(--space-2);
+        }
+
+        .action-bar {
+            display: flex;
+            gap: var(--space-2);
+            flex-wrap: wrap;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: var(--space-2);
+            margin-bottom: var(--space-6);
+        }
+
+        .stat-card {
+            background: var(--white);
+            border: 2px solid var(--gray-900);
+            padding: var(--space-3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gray-900);
+            transition: height 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card:hover::before {
+            height: 6px;
+        }
+
+        .stat-card.success {
+            background: linear-gradient(135deg, #ffffff 0%, #e8f5e9 100%);
+            border-color: var(--accent-success);
+            border-width: 3px;
+        }
+
+        .stat-card.danger {
+            background: linear-gradient(135deg, #ffffff 0%, #ffebee 100%);
+            border-color: var(--accent-danger);
+            border-width: 3px;
+        }
+
+        .stat-value {
+            font-size: clamp(36px, 8vw, 64px);
+            font-weight: var(--font-weight-black);
+            letter-spacing: -2px;
+            line-height: 1;
+            color: var(--black);
+            margin: var(--space-2) 0;
+        }
+
+        .stat-card.success .stat-value {
+            color: var(--accent-success);
+        }
+
+        .stat-card.danger .stat-value {
+            color: var(--accent-danger);
+        }
+
+        .stat-meta {
+            font-size: 11px;
+            color: var(--gray-600);
+            text-transform: uppercase;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--gray-300);
+            margin-top: var(--space-2);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-success);
+            transition: width 0.3s;
+        }
+
+        .table-card {
+            border: 2px solid var(--gray-900);
+            background: var(--white);
+            margin-bottom: var(--space-6);
+        }
+
+        .table-header {
+            padding: var(--space-3);
+            background: var(--black);
+            color: var(--white);
+        }
+
+        .table-title {
+            font-size: 18px;
+            font-weight: var(--font-weight-bold);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: var(--space-2);
+        }
+
+        .search-input {
+            padding: var(--space-1) var(--space-2);
+            border: 2px solid var(--white);
+            background: var(--black);
+            color: var(--white);
+            font-size: 13px;
+            font-family: var(--font-family);
+            width: 100%;
+        }
+
+        .table-wrapper {
+            padding: var(--space-3);
+        }
+
+        .guest-card {
+            background: var(--white);
+            border: 2px solid var(--gray-300);
+            padding: var(--space-3);
+            margin-bottom: var(--space-2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .guest-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 8px;
+            height: 100%;
+            background: var(--gray-400);
+            transition: all 0.3s ease;
+        }
+
+        .guest-card[data-status="yes"]::before {
+            background: linear-gradient(180deg, #00cc44 0%, #00ff55 100%);
+            box-shadow: 2px 0 8px rgba(0, 204, 68, 0.5);
+        }
+
+        .guest-card[data-status="no"]::before {
+            background: linear-gradient(180deg, #ff3333 0%, #ff5555 100%);
+            box-shadow: 2px 0 8px rgba(255, 51, 51, 0.5);
+        }
+
+        .guest-name {
+            font-size: 18px;
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--space-2);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: var(--font-weight-black);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .status-badge.pending {
+            background: linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%);
+            color: var(--gray-700);
+        }
+
+        .status-badge.yes {
+            background: linear-gradient(135deg, #00cc44 0%, #00ff55 100%);
+            color: var(--white);
+            box-shadow: 0 4px 12px rgba(0, 204, 68, 0.4);
+        }
+
+        .status-badge.no {
+            background: linear-gradient(135deg, #ff3333 0%, #ff5555 100%);
+            color: var(--white);
+            box-shadow: 0 4px 12px rgba(255, 51, 51, 0.4);
+        }
+
+        .guest-fields {
+            display: grid;
+            gap: var(--space-1);
+            margin-bottom: var(--space-2);
+            font-size: 13px;
+            padding-left: var(--space-2);
+        }
+
+        .guest-field-row {
+            display: flex;
+            gap: var(--space-1);
+            align-items: flex-start;
+        }
+
+        .field-icon {
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--gray-100);
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        .field-label {
+            font-weight: var(--font-weight-bold);
+            color: var(--gray-600);
+            min-width: 80px;
+        }
+
+        .field-value {
+            color: var(--gray-900);
+        }
+
+        .presence-control {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-2);
+        }
+
+        .radio-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-1);
+            padding: var(--space-2);
+            border: 2px solid var(--gray-300);
+            cursor: pointer;
+        }
+
+        .radio-group input[type="radio"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--gray-600);
+            background: var(--white);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .radio-group input[type="radio"]:checked {
+            border-color: var(--black);
+            background: var(--black);
+        }
+
+        .radio-group.success input[type="radio"]:checked {
+            border-color: var(--accent-success);
+            background: var(--accent-success);
+        }
+
+        .radio-group.danger input[type="radio"]:checked {
+            border-color: var(--accent-danger);
+            background: var(--accent-danger);
+        }
+
+        .radio-group input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background: var(--white);
+        }
+
+        .radio-label {
+            font-size: 13px;
+            font-weight: var(--font-weight-bold);
+            text-transform: uppercase;
+        }
+
+        .guest-actions {
+            display: flex;
+            gap: var(--space-1);
+            margin-top: var(--space-2);
+        }
+
+        .table-footer {
+            padding: var(--space-3);
+            background: var(--gray-100);
+            border-top: 2px solid var(--gray-900);
+        }
+
+        .footer-info {
+            font-size: 13px;
+            font-weight: var(--font-weight-bold);
+            text-transform: uppercase;
+            margin-bottom: var(--space-2);
+            text-align: center;
+        }
+
+        .footer-actions {
+            display: grid;
+            gap: var(--space-2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            padding: var(--space-4);
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--white);
+            border: 3px solid var(--black);
+            padding: var(--space-5);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .modal-header {
+            margin-bottom: var(--space-4);
+            padding-bottom: var(--space-2);
+            border-bottom: 2px solid var(--black);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: var(--font-weight-black);
+            text-transform: uppercase;
+        }
+
+        .modal-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-2);
+            margin-top: var(--space-4);
+        }
+
+        .help-note {
+            margin-top: var(--space-2);
+            padding: var(--space-2);
+            border-left: 3px solid var(--black);
+            background: var(--white);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (min-width: 768px) {
+            .presence-control {
+                display: flex;
+                justify-content: center;
+                gap: var(--space-3);
+            }
+
+            .radio-group {
+                border: none;
+                padding: 0;
+            }
+
+            .footer-actions {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .desktop-table {
+                display: table;
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .desktop-table thead th {
+                padding: var(--space-2);
+                text-align: left;
+                border-bottom: 2px solid var(--gray-900);
+            }
+
+            .desktop-table tbody td {
+                padding: var(--space-3) var(--space-2);
+                border-bottom: 1px solid var(--gray-300);
+                font-size: 14px;
+            }
+
+            .desktop-table tbody tr {
+                transition: all 0.2s ease;
+            }
+
+            .desktop-table tbody tr:hover {
+                background: var(--gray-100);
+                transform: scale(1.01);
+            }
+
+            .desktop-table tbody tr:nth-child(even) {
+                background: rgba(0, 0, 0, 0.02);
+            }
+
+            .desktop-table tbody tr:nth-child(even):hover {
+                background: var(--gray-100);
+            }
+
+            .desktop-table tbody tr[data-status="yes"] {
+                border-left: 3px solid var(--accent-success);
+            }
+
+            .desktop-table tbody tr[data-status="no"] {
+                border-left: 3px solid var(--accent-danger);
+            }
+
+            .guest-card {
+                display: none;
+            }
+
+            .table-footer {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .footer-info {
+                margin-bottom: 0;
+                text-align: left;
+            }
+
+            .footer-actions {
+                display: flex;
+                grid-template-columns: unset;
+            }
+        }
+
+        @media print {
+            .header-actions, .tabs-wrapper, .choice-section,
+            .import-section, .manual-section, .search-input,
+            .guest-actions, .footer-actions, .btn, .modal {
+                display: none !important;
+            }
+
+            .guest-card {
+                page-break-inside: avoid;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .guest-card, .desktop-table tbody tr {
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .stat-card {
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; opacity: 0; animation-fill-mode: forwards; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; opacity: 0; animation-fill-mode: forwards; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; opacity: 0; animation-fill-mode: forwards; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; opacity: 0; animation-fill-mode: forwards; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div>
+                <h1 class="heading-1">CONTROLE DE PRESENÇA</h1>
+                <p class="label">Sistema de Gestão de Eventos</p>
+                <span class="auto-save" id="auto-save">✓ AUTO-SALVO</span>
+            </div>
+            <div>
+                <button class="btn" onclick="clearAllData()">🗑 LIMPAR TUDO</button>
+            </div>
+        </header>
+
+        <div class="tabs-wrapper">
+            <div class="tabs" id="tabs-container"></div>
+        </div>
+
+        <div id="event-content"></div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="confirm-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="confirm-title">CONFIRMAR</h2>
+            </div>
+            <p id="confirm-message"></p>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal('confirm-modal')">CANCELAR</button>
+                <button class="btn btn-danger" id="confirm-action">CONFIRMAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">EDITAR CONVIDADO</h2>
+            </div>
+            <div id="edit-fields"></div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal('edit-modal')">CANCELAR</button>
+                <button class="btn btn-success" onclick="saveEdit()">SALVAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="new-event-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">NOVO EVENTO</h2>
+            </div>
+            <div class="form-group">
+                <label class="label">NOME DO EVENTO</label>
+                <input type="text" class="input" id="new-event-name" placeholder="Ex: Aniversário do João">
+            </div>
+            <div class="form-group">
+                <label class="label">DATA DO EVENTO</label>
+                <input type="date" class="input" id="new-event-date">
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal('new-event-modal')">CANCELAR</button>
+                <button class="btn btn-success" onclick="createNewEvent()">CRIAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script>
+        let events = [];
+        let currentEventId = null;
+        let editingGuestIndex = null;
+
+        function init() {
+            loadData();
+            if (events.length === 0) {
+                createDefaultEvent();
+            }
+            renderTabs();
+            switchToEvent(events[0].id);
+            setupKeyboard();
+        }
+
+        function createDefaultEvent() {
+            events.push({
+                id: Date.now(),
+                name: 'Primeiro Evento',
+                date: '',
+                columns: [], // Colunas dinâmicas
+                guests: [],
+                method: null
+            });
+            saveData();
+        }
+
+        function saveData() {
+            localStorage.setItem('presenca_events', JSON.stringify(events));
+            const indicator = document.getElementById('auto-save');
+            indicator.style.opacity = '1';
+            setTimeout(() => indicator.style.opacity = '0.5', 2000);
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('presenca_events');
+            if (saved) events = JSON.parse(saved);
+        }
+
+        function clearAllData() {
+            showConfirm('LIMPAR TUDO', 'Tem certeza? Todos os eventos serão excluídos.', () => {
+                localStorage.clear();
+                events = [];
+                createDefaultEvent();
+                renderTabs();
+                switchToEvent(events[0].id);
+            });
+        }
+
+        function renderTabs() {
+            const container = document.getElementById('tabs-container');
+            container.innerHTML = '';
+
+            events.forEach(event => {
+                const tab = document.createElement('button');
+                tab.className = `tab ${event.id === currentEventId ? 'active' : ''}`;
+                tab.innerHTML = `${event.name}${events.length > 1 ? `<span class="tab-close" onclick="deleteEvent(event, ${event.id})">×</span>` : ''}`;
+                tab.onclick = (e) => {
+                    if (!e.target.classList.contains('tab-close')) switchToEvent(event.id);
+                };
+                container.appendChild(tab);
+            });
+
+            const newTab = document.createElement('button');
+            newTab.className = 'tab new-tab';
+            newTab.textContent = '+ NOVO';
+            newTab.onclick = () => showModal('new-event-modal');
+            container.appendChild(newTab);
+        }
+
+        function switchToEvent(eventId) {
+            currentEventId = eventId;
+            renderTabs();
+            renderEventContent();
+        }
+
+        function createNewEvent() {
+            const name = document.getElementById('new-event-name').value.trim();
+            const date = document.getElementById('new-event-date').value;
+            if (!name) return alert('Digite o nome do evento!');
+
+            events.push({
+                id: Date.now(),
+                name: name,
+                date: date,
+                columns: [],
+                guests: [],
+                method: null
+            });
+            saveData();
+            closeModal('new-event-modal');
+            switchToEvent(events[events.length - 1].id);
+            document.getElementById('new-event-name').value = '';
+            document.getElementById('new-event-date').value = '';
+        }
+
+        function deleteEvent(e, eventId) {
+            e.stopPropagation();
+            showConfirm('EXCLUIR EVENTO', 'Tem certeza?', () => {
+                events = events.filter(ev => ev.id !== eventId);
+                saveData();
+                if (currentEventId === eventId) {
+                    switchToEvent(events[0].id);
+                } else {
+                    renderTabs();
+                }
+            });
+        }
+
+        function renderEventContent() {
+            const event = events.find(e => e.id === currentEventId);
+            const container = document.getElementById('event-content');
+
+            if (!event.method) {
+                container.innerHTML = `
+                    <section class="choice-section">
+                        <div class="section-header">
+                            <h2 class="heading-2">ESCOLHA O MÉTODO</h2>
+                        </div>
+                        <div class="choice-grid">
+                            <div class="choice-card" onclick="selectMethod('paste')">
+                                <div class="choice-icon">📋</div>
+                                <h3 class="choice-title">Copiar e Colar</h3>
+                                <p class="choice-description">Cole dados direto da sua planilha. Rápido e simples.</p>
+                            </div>
+                            <div class="choice-card" onclick="selectMethod('manual')">
+                                <div class="choice-icon">✍️</div>
+                                <h3 class="choice-title">Criar Manual</h3>
+                                <p class="choice-description">Adicione convidados manualmente no sistema.</p>
+                            </div>
+                        </div>
+                    </section>
+                `;
+            } else if (event.method === 'paste') {
+                renderPasteSection(event);
+            } else if (event.method === 'manual') {
+                renderManualSection(event);
+            }
+        }
+
+        function selectMethod(method) {
+            const event = events.find(e => e.id === currentEventId);
+            event.method = method;
+            saveData();
+            renderEventContent();
+        }
+
+        function renderPasteSection(event) {
+            const container = document.getElementById('event-content');
+            container.innerHTML = `
+                <section class="import-section active">
+                    <div class="form-group">
+                        <label class="label">COLE OS DADOS DA PLANILHA</label>
+                        <textarea id="paste-data" class="input" style="min-height: 200px; font-family: monospace; font-size: 13px;" placeholder="Ctrl+A na planilha → Ctrl+C → Ctrl+V aqui"></textarea>
+                        <div class="help-note">
+                            <p class="body-text-small"><strong>PASSO A PASSO:</strong></p>
+                            <p class="body-text-small">1. Abra sua planilha no Google Sheets</p>
+                            <p class="body-text-small">2. Selecione TUDO (Ctrl+A)</p>
+                            <p class="body-text-small">3. Copie (Ctrl+C)</p>
+                            <p class="body-text-small">4. Cole acima (Ctrl+V)</p>
+                            <p class="body-text-small">5. Clique em IMPORTAR</p>
+                            <p class="body-text-small"><strong>IMPORTANTE:</strong> Primeira linha = nomes das colunas</p>
+                        </div>
+                        <div class="action-bar" style="margin-top: var(--space-3);">
+                            <button class="btn btn-success" onclick="loadPastedData()">IMPORTAR</button>
+                            <button class="btn" onclick="resetMethod()">← VOLTAR</button>
+                        </div>
+                    </div>
+                </section>
+            `;
+
+            if (event.guests.length > 0) {
+                renderGuestsSection(event);
+            }
+        }
+
+        function loadPastedData() {
+            const data = document.getElementById('paste-data').value.trim();
+            if (!data) return alert('Cole os dados da planilha!');
+
+            try {
+                const lines = data.split('\n').filter(l => l.trim());
+                if (lines.length < 2) throw new Error('Precisa de pelo menos 2 linhas (cabeçalho + dados)');
+
+                // Primeira linha = colunas (TAB separated)
+                const columns = lines[0].split('\t').map(c => c.trim()).filter(c => c);
+                
+                console.log('📋 Colunas detectadas:', columns);
+
+                const guests = [];
+
+                // Processar dados
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split('\t');
+                    const guest = { status: null };
+                    
+                    columns.forEach((col, idx) => {
+                        guest[col] = (values[idx] || '').trim();
+                    });
+
+                    // Só adiciona se pelo menos um campo preenchido
+                    if (Object.values(guest).some(v => v)) {
+                        guests.push(guest);
+                    }
+                }
+
+                if (guests.length === 0) throw new Error('Nenhum dado válido encontrado!');
+
+                console.log(`✅ Importados ${guests.length} convidados com ${columns.length} colunas`);
+
+                const event = events.find(e => e.id === currentEventId);
+                event.columns = columns;
+                event.guests = guests;
+                saveData();
+                renderEventContent();
+
+            } catch (error) {
+                alert('ERRO: ' + error.message);
+            }
+        }
+
+        function renderManualSection(event) {
+            const container = document.getElementById('event-content');
+
+            if (event.guests.length === 0) {
+                container.innerHTML = `
+                    <section class="manual-section active">
+                        <div class="form-group">
+                            <label class="label">DEFINA AS COLUNAS</label>
+                            <input type="text" class="input" id="column-names" placeholder="Ex: Nome, Telefone, Email, Cidade (separado por vírgula)">
+                            <div class="help-note">
+                                <p class="body-text-small">Digite os nomes das colunas que você quer, separados por vírgula.</p>
+                            </div>
+                            <button class="btn btn-success" style="margin-top: var(--space-2);" onclick="setupManualColumns()">DEFINIR COLUNAS</button>
+                        </div>
+                        <button class="btn" onclick="resetMethod()">← VOLTAR</button>
+                    </section>
+                `;
+            } else {
+                renderGuestsSection(event);
+            }
+        }
+
+        function setupManualColumns() {
+            const input = document.getElementById('column-names').value.trim();
+            if (!input) return alert('Digite os nomes das colunas!');
+
+            const columns = input.split(',').map(c => c.trim()).filter(c => c);
+            if (columns.length === 0) return alert('Digite pelo menos uma coluna!');
+
+            const event = events.find(e => e.id === currentEventId);
+            event.columns = columns;
+            
+            // Adiciona primeira linha vazia
+            const firstGuest = { status: null };
+            columns.forEach(col => firstGuest[col] = '');
+            event.guests = [firstGuest];
+            
+            saveData();
+            renderManualForm(event);
+        }
+
+        function renderManualForm(event) {
+            const container = document.getElementById('event-content');
+            container.innerHTML = `
+                <section class="manual-section active">
+                    <div class="form-group">
+                        <label class="label">ADICIONAR CONVIDADOS</label>
+                        <div id="manual-entries"></div>
+                        <div class="action-bar" style="margin-top: var(--space-3);">
+                            <button class="btn" onclick="addManualRow()">+ LINHA</button>
+                            <button class="btn btn-success" onclick="saveManualGuests()">CONFIRMAR</button>
+                        </div>
+                    </div>
+                </section>
+            `;
+
+            const entriesDiv = document.getElementById('manual-entries');
+            event.guests.forEach((guest, idx) => {
+                entriesDiv.appendChild(createManualRow(event.columns, guest, idx));
+            });
+        }
+
+        function createManualRow(columns, guest = {}, index) {
+            const row = document.createElement('div');
+            row.className = 'manual-entry-row';
+            
+            const fields = columns.map(col => `
+                <div>
+                    <label class="label">${col.toUpperCase()}</label>
+                    <input type="text" class="input" value="${guest[col] || ''}" data-column="${col}">
+                </div>
+            `).join('');
+
+            row.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-2);">
+                    ${fields}
+                </div>
+                <button class="btn btn-danger btn-small" style="margin-top: var(--space-2);" onclick="removeManualRow(this)">REMOVER</button>
+            `;
+            
+            return row;
+        }
+
+        function addManualRow() {
+            const event = events.find(e => e.id === currentEventId);
+            const entriesDiv = document.getElementById('manual-entries');
+            entriesDiv.appendChild(createManualRow(event.columns, {}, event.guests.length));
+        }
+
+        function removeManualRow(btn) {
+            if (document.querySelectorAll('.manual-entry-row').length > 1) {
+                btn.closest('.manual-entry-row').remove();
+            } else {
+                alert('Precisa ter pelo menos uma linha!');
+            }
+        }
+
+        function saveManualGuests() {
+            const event = events.find(e => e.id === currentEventId);
+            const rows = document.querySelectorAll('.manual-entry-row');
+            const guests = [];
+
+            rows.forEach(row => {
+                const guest = { status: null };
+                const inputs = row.querySelectorAll('input[data-column]');
+                
+                inputs.forEach(input => {
+                    guest[input.dataset.column] = input.value.trim();
+                });
+
+                // Adiciona se pelo menos um campo preenchido
+                if (Object.values(guest).some(v => v)) {
+                    guests.push(guest);
+                }
+            });
+
+            if (guests.length === 0) return alert('Adicione pelo menos um convidado!');
+
+            event.guests = guests;
+            saveData();
+            renderEventContent();
+        }
+
+        function resetMethod() {
+            showConfirm('VOLTAR', 'Tem certeza? Os dados serão perdidos.', () => {
+                const event = events.find(e => e.id === currentEventId);
+                event.method = null;
+                event.columns = [];
+                event.guests = [];
+                saveData();
+                renderEventContent();
+            });
+        }
+
+        function renderGuestsSection(event) {
+            const container = document.getElementById('event-content');
+            
+            const stats = calculateStats(event);
+            const percentage = event.guests.length > 0 ? Math.round((stats.yes / event.guests.length) * 100) : 0;
+
+            container.innerHTML += `
+                <section class="section">
+                    <div class="section-header">
+                        <h2 class="heading-2">📊 ESTATÍSTICAS</h2>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="label">TOTAL</div>
+                            <div class="stat-value">${stats.total}</div>
+                            <div class="stat-meta">Convidados</div>
+                        </div>
+                        <div class="stat-card success">
+                            <div class="label">CONFIRMADOS</div>
+                            <div class="stat-value">${stats.yes}</div>
+                            <div class="stat-meta">${percentage}%</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                        <div class="stat-card danger">
+                            <div class="label">RECUSAS</div>
+                            <div class="stat-value">${stats.no}</div>
+                            <div class="stat-meta">${Math.round((stats.no / event.guests.length) * 100)}%</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="label">PENDENTES</div>
+                            <div class="stat-value">${stats.pending}</div>
+                            <div class="stat-meta">Aguardando</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="table-card">
+                    <div class="table-header">
+                        <h3 class="table-title">👥 CONVIDADOS (${event.guests.length})</h3>
+                        <input type="text" class="search-input" placeholder="BUSCAR..." onkeyup="filterGuests(event)">
+                    </div>
+
+                    <div class="table-wrapper">
+                        <div id="guests-cards"></div>
+                        <table class="desktop-table">
+                            <thead>
+                                <tr>
+                                    ${event.columns.map(col => `<th><span class="label">${col.toUpperCase()}</span></th>`).join('')}
+                                    <th style="text-align: center;"><span class="label">STATUS</span></th>
+                                    <th><span class="label">AÇÕES</span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="guests-tbody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-footer">
+                        <div class="footer-info">${event.guests.length} CONVIDADOS</div>
+                        <div class="footer-actions">
+                            <button class="btn" onclick="exportPDF()">📄 PDF</button>
+                            <button class="btn" onclick="exportTXT()">📝 TXT</button>
+                            <button class="btn btn-success" onclick="saveData(); alert('✓ Salvo!')">💾 SALVAR</button>
+                        </div>
+                    </div>
+                </section>
+            `;
+
+            renderGuestsList(event);
+        }
+
+        function renderGuestsList(event) {
+            const cardsContainer = document.getElementById('guests-cards');
+            const tbodyContainer = document.getElementById('guests-tbody');
+
+            cardsContainer.innerHTML = '';
+            tbodyContainer.innerHTML = '';
+
+            // Ícones para tipos comuns de campos
+            const fieldIcons = {
+                'email': '✉',
+                'telefone': '📱',
+                'phone': '📱',
+                'whatsapp': '💬',
+                'cidade': '📍',
+                'city': '📍',
+                'endereco': '🏠',
+                'endereço': '🏠',
+                'cpf': '🆔',
+                'rg': '🆔',
+                'idade': '🎂',
+                'data': '📅'
+            };
+
+            function getFieldIcon(fieldName) {
+                const lower = fieldName.toLowerCase();
+                for (const key in fieldIcons) {
+                    if (lower.includes(key)) return fieldIcons[key];
+                }
+                return '•';
+            }
+
+            event.guests.forEach((guest, index) => {
+                // Mobile card
+                const card = document.createElement('div');
+                card.className = 'guest-card';
+                card.dataset.status = guest.status || 'pending';
+                
+                const firstCol = event.columns[0];
+                const statusBadge = guest.status === 'yes' ? '<span class="status-badge yes">✓ CONFIRMADO</span>' :
+                                   guest.status === 'no' ? '<span class="status-badge no">✗ NÃO VEM</span>' :
+                                   '<span class="status-badge pending">⏳ PENDENTE</span>';
+                
+                const otherFields = event.columns.slice(1).map(col => {
+                    if (!guest[col]) return '';
+                    const icon = getFieldIcon(col);
+                    return `
+                        <div class="guest-field-row">
+                            <span class="field-icon">${icon}</span>
+                            <span class="field-label">${col}:</span>
+                            <span class="field-value">${guest[col]}</span>
+                        </div>
+                    `;
+                }).join('');
+
+                card.innerHTML = `
+                    <div class="guest-name">
+                        ${guest[firstCol] || '-'}
+                        ${statusBadge}
+                    </div>
+                    <div class="guest-fields">${otherFields}</div>
+                    <div class="presence-control">
+                        <label class="radio-group success">
+                            <input type="radio" name="m${index}" ${guest.status === 'yes' ? 'checked' : ''} onchange="updateStatus(${index}, 'yes')">
+                            <span class="radio-label">SIM</span>
+                        </label>
+                        <label class="radio-group danger">
+                            <input type="radio" name="m${index}" ${guest.status === 'no' ? 'checked' : ''} onchange="updateStatus(${index}, 'no')">
+                            <span class="radio-label">NÃO</span>
+                        </label>
+                    </div>
+                    <div class="guest-actions">
+                        <button class="btn btn-small" onclick="editGuest(${index})">✏ EDITAR</button>
+                        <button class="btn btn-small btn-danger" onclick="deleteGuest(${index})">🗑 EXCLUIR</button>
+                    </div>
+                `;
+                cardsContainer.appendChild(card);
+
+                // Desktop table row
+                const row = document.createElement('tr');
+                row.dataset.status = guest.status || 'pending';
+                
+                const cells = event.columns.map((col, idx) => {
+                    const value = guest[col] || '-';
+                    if (idx === 0) {
+                        // Primeira coluna com badge
+                        const badge = guest.status === 'yes' ? '<span class="status-badge yes">✓</span>' :
+                                     guest.status === 'no' ? '<span class="status-badge no">✗</span>' :
+                                     '<span class="status-badge pending">⏳</span>';
+                        return `<td style="font-weight: var(--font-weight-bold);"><div style="display: flex; align-items: center; gap: 8px;">${value} ${badge}</div></td>`;
+                    }
+                    return `<td>${value}</td>`;
+                }).join('');
+                
+                row.innerHTML = `
+                    ${cells}
+                    <td>
+                        <div class="presence-control">
+                            <label class="radio-group success">
+                                <input type="radio" name="d${index}" ${guest.status === 'yes' ? 'checked' : ''} onchange="updateStatus(${index}, 'yes')">
+                                <span class="radio-label">SIM</span>
+                            </label>
+                            <label class="radio-group danger">
+                                <input type="radio" name="d${index}" ${guest.status === 'no' ? 'checked' : ''} onchange="updateStatus(${index}, 'no')">
+                                <span class="radio-label">NÃO</span>
+                            </label>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 4px;">
+                            <button class="btn btn-small" onclick="editGuest(${index})">✏</button>
+                            <button class="btn btn-small btn-danger" onclick="deleteGuest(${index})">×</button>
+                        </div>
+                    </td>
+                `;
+                tbodyContainer.appendChild(row);
+            });
+        }
+
+        function updateStatus(index, status) {
+            const event = events.find(e => e.id === currentEventId);
+            event.guests[index].status = status;
+            saveData();
+            renderEventContent();
+        }
+
+        function editGuest(index) {
+            editingGuestIndex = index;
+            const event = events.find(e => e.id === currentEventId);
+            const guest = event.guests[index];
+
+            const fieldsHTML = event.columns.map(col => `
+                <div class="form-group">
+                    <label class="label">${col.toUpperCase()}</label>
+                    <input type="text" class="input" id="edit-${col}" value="${guest[col] || ''}">
+                </div>
+            `).join('');
+
+            document.getElementById('edit-fields').innerHTML = fieldsHTML;
+            showModal('edit-modal');
+        }
+
+        function saveEdit() {
+            const event = events.find(e => e.id === currentEventId);
+            const guest = event.guests[editingGuestIndex];
+
+            event.columns.forEach(col => {
+                const input = document.getElementById(`edit-${col}`);
+                if (input) guest[col] = input.value.trim();
+            });
+
+            saveData();
+            closeModal('edit-modal');
+            renderEventContent();
+        }
+
+        function deleteGuest(index) {
+            showConfirm('EXCLUIR', 'Tem certeza?', () => {
+                const event = events.find(e => e.id === currentEventId);
+                event.guests.splice(index, 1);
+                saveData();
+                renderEventContent();
+            });
+        }
+
+        function filterGuests(e) {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.guest-card, #guests-tbody tr').forEach(item => {
+                item.style.display = item.textContent.toLowerCase().includes(term) ? '' : 'none';
+            });
+        }
+
+        function calculateStats(event) {
+            return {
+                total: event.guests.length,
+                yes: event.guests.filter(g => g.status === 'yes').length,
+                no: event.guests.filter(g => g.status === 'no').length,
+                pending: event.guests.filter(g => !g.status).length
+            };
+        }
+
+        function exportPDF() {
+            const event = events.find(e => e.id === currentEventId);
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // CABEÇALHO COM DESIGN
+            doc.setFillColor(0, 0, 0);
+            doc.rect(0, 0, 210, 35, 'F');
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(28);
+            doc.setFont(undefined, 'bold');
+            doc.text(event.name.toUpperCase(), 20, 20);
+            
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'normal');
+            const dateText = event.date ? `Data do Evento: ${formatDateBR(event.date)}` : 'Sistema de Controle de Presença';
+            doc.text(dateText, 20, 28);
+
+            // ESTATÍSTICAS EM DESTAQUE
+            const stats = calculateStats(event);
+            const percentage = event.guests.length > 0 ? Math.round((stats.yes / event.guests.length) * 100) : 0;
+            
+            let y = 45;
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('ESTATÍSTICAS', 20, y);
+            
+            y += 8;
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            
+            // Box de estatísticas
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.5);
+            
+            // Total
+            doc.setFillColor(245, 245, 245);
+            doc.roundedRect(20, y - 3, 40, 12, 2, 2, 'FD');
+            doc.text(`Total: ${stats.total}`, 25, y + 4);
+            
+            // Confirmados (verde)
+            doc.setFillColor(0, 204, 68, 25);
+            doc.roundedRect(65, y - 3, 40, 12, 2, 2, 'FD');
+            doc.setTextColor(0, 150, 50);
+            doc.text(`✓ Sim: ${stats.yes}`, 70, y + 4);
+            
+            // Recusas (vermelho)
+            doc.setFillColor(255, 51, 51, 25);
+            doc.roundedRect(110, y - 3, 40, 12, 2, 2, 'FD');
+            doc.setTextColor(200, 0, 0);
+            doc.text(`✗ Não: ${stats.no}`, 115, y + 4);
+            
+            // Pendentes
+            doc.setFillColor(245, 245, 245);
+            doc.roundedRect(155, y - 3, 40, 12, 2, 2, 'FD');
+            doc.setTextColor(100, 100, 100);
+            doc.text(`⏳ Pend: ${stats.pending}`, 160, y + 4);
+            
+            // Barra de progresso
+            y += 18;
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(9);
+            doc.text(`Taxa de Confirmação: ${percentage}%`, 20, y);
+            
+            y += 3;
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(1);
+            doc.rect(20, y, 170, 5);
+            
+            if (percentage > 0) {
+                doc.setFillColor(0, 204, 68);
+                doc.rect(20, y, (170 * percentage / 100), 5, 'F');
+            }
+
+            // TABELA DE CONVIDADOS
+            y += 12;
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('LISTA DE CONVIDADOS', 20, y);
+            
+            y += 5;
+
+            // Preparar dados da tabela
+            const tableHeaders = ['#', 'Status', ...event.columns];
+            const tableData = event.guests.map((guest, idx) => {
+                const statusIcon = guest.status === 'yes' ? '✓' : guest.status === 'no' ? '✗' : '⏳';
+                const statusText = guest.status === 'yes' ? 'Confirmado' : guest.status === 'no' ? 'Não vem' : 'Pendente';
+                return [
+                    (idx + 1).toString(),
+                    `${statusIcon} ${statusText}`,
+                    ...event.columns.map(col => guest[col] || '-')
+                ];
+            });
+
+            // Usar autoTable se disponível, senão tabela manual
+            if (typeof doc.autoTable === 'function') {
+                doc.autoTable({
+                    head: [tableHeaders],
+                    body: tableData,
+                    startY: y,
+                    margin: { left: 20, right: 20 },
+                    styles: {
+                        fontSize: 9,
+                        cellPadding: 3,
+                        lineColor: [200, 200, 200],
+                        lineWidth: 0.1
+                    },
+                    headStyles: {
+                        fillColor: [0, 0, 0],
+                        textColor: [255, 255, 255],
+                        fontStyle: 'bold',
+                        halign: 'center'
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 10, halign: 'center' },
+                        1: { cellWidth: 25 }
+                    },
+                    didParseCell: function(data) {
+                        // Colorir status
+                        if (data.column.index === 1 && data.section === 'body') {
+                            if (data.cell.text[0].includes('✓')) {
+                                data.cell.styles.textColor = [0, 150, 50];
+                            } else if (data.cell.text[0].includes('✗')) {
+                                data.cell.styles.textColor = [200, 0, 0];
+                            } else {
+                                data.cell.styles.textColor = [100, 100, 100];
+                            }
+                        }
+                    },
+                    alternateRowStyles: {
+                        fillColor: [250, 250, 250]
+                    }
+                });
+            } else {
+                // Tabela manual simples
+                y += 2;
+                doc.setFontSize(9);
+                event.guests.forEach((guest, idx) => {
+                    if (y > 270) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    
+                    const statusIcon = guest.status === 'yes' ? '✓' : guest.status === 'no' ? '✗' : '⏳';
+                    const firstCol = event.columns[0];
+                    
+                    if (guest.status === 'yes') doc.setTextColor(0, 150, 50);
+                    else if (guest.status === 'no') doc.setTextColor(200, 0, 0);
+                    else doc.setTextColor(100, 100, 100);
+                    
+                    doc.text(`${idx + 1}. ${statusIcon} ${guest[firstCol]}`, 20, y);
+                    doc.setTextColor(0, 0, 0);
+                    y += 7;
+                    
+                    event.columns.slice(1).forEach(col => {
+                        if (guest[col]) {
+                            doc.setFontSize(8);
+                            doc.text(`   ${col}: ${guest[col]}`, 25, y);
+                            y += 5;
+                        }
+                    });
+                    
+                    y += 2;
+                });
+            }
+
+            // RODAPÉ
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                
+                doc.setDrawColor(200, 200, 200);
+                doc.setLineWidth(0.5);
+                doc.line(20, 285, 190, 285);
+                
+                doc.setFontSize(8);
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 20, 290);
+                doc.text(`Página ${i} de ${pageCount}`, 170, 290);
+            }
+
+            doc.save(`${event.name.replace(/\s+/g, '_')}_Lista_Presenca.pdf`);
+        }
+
+        function formatDateBR(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr + 'T00:00:00');
+            return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+
+        function exportTXT() {
+            const event = events.find(e => e.id === currentEventId);
+            let content = `${event.name.toUpperCase()}\n${'='.repeat(50)}\n\n`;
+
+            event.guests.forEach(guest => {
+                const status = guest.status === 'yes' ? '[✓]' : guest.status === 'no' ? '[✗]' : '[ ]';
+                const firstCol = event.columns[0];
+                content += `${status} ${guest[firstCol]}\n`;
+                
+                event.columns.slice(1).forEach(col => {
+                    if (guest[col]) content += `   ${col}: ${guest[col]}\n`;
+                });
+                content += '\n';
+            });
+
+            const stats = calculateStats(event);
+            content += `${'='.repeat(50)}\nTotal: ${stats.total} | Sim: ${stats.yes} | Não: ${stats.no}\n`;
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${event.name.replace(/\s+/g, '_')}.txt`;
+            a.click();
+        }
+
+        function showModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function showConfirm(title, message, callback) {
+            document.getElementById('confirm-title').textContent = title;
+            document.getElementById('confirm-message').textContent = message;
+            document.getElementById('confirm-action').onclick = () => {
+                callback();
+                closeModal('confirm-modal');
+            };
+            showModal('confirm-modal');
+        }
+
+        function setupKeyboard() {
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                    e.preventDefault();
+                    saveData();
+                    alert('✓ Salvo!');
+                }
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal.active').forEach(m => m.classList.remove('active'));
+                }
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
