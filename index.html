@@ -18,6 +18,7 @@
                         <button class="dropdown-item" data-action="new-event">Novo Evento</button>
                         <button class="dropdown-item" data-action="save">Salvar <span class="shortcut">Ctrl+S</span></button>
                         <div class="dropdown-divider"></div>
+                        <!-- ✅ NOVOS ITENS ADICIONADOS -->
                         <button class="dropdown-item" data-action="cloud-backup">
                             ☁️ Salvar na Nuvem
                         </button>
@@ -25,10 +26,6 @@
                             📱 Sincronizar QR Code
                         </button>
                         <div class="dropdown-divider"></div>
-                        
-                        <button class="dropdown-item" data-action="export-pdf">Exportar PDF</button>
-                        <button class="dropdown-item" data-action="export-txt">Exportar TXT</button>
-                        <button class="dropdown-item" data-action="export-csv">Exportar CSV</button>
                         <button class="dropdown-item" data-action="export-pdf">Exportar PDF</button>
                         <button class="dropdown-item" data-action="export-txt">Exportar TXT</button>
                         <button class="dropdown-item" data-action="export-csv">Exportar CSV</button>
@@ -233,6 +230,8 @@
                 
                 <h3 style="margin: 2rem 0 1rem;">MENU ARQUIVO</h3>
                 <p>• <strong>Novo Evento:</strong> Cria evento adicional (abas)</p>
+                <p>• <strong>Salvar na Nuvem:</strong> Backup assistido no Drive, Dropbox, etc</p>
+                <p>• <strong>Sincronizar QR Code:</strong> Transfere dados entre dispositivos</p>
                 <p>• <strong>Exportar CSV:</strong> Abre no Excel/Sheets</p>
                 <p>• <strong>Duplicar Evento:</strong> Copia estrutura para reusar</p>
                 
@@ -291,6 +290,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- ✅ BIBLIOTECAS NECESSÁRIAS PARA QR E CLOUD -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 
@@ -301,8 +301,8 @@
     <script src="js/exports.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/ui-guests.js"></script>
-    <script src="js/app.js"></script>
     <script src="js/cloud-assist.js"></script>
     <script src="js/qr-sync.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
