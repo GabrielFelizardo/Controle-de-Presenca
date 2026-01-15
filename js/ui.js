@@ -101,18 +101,24 @@ const UI = {
         const actions = {
             'new-event': () => this.showModal('new-event-modal'),
             'save': () => { Storage.save(); alert('✓ Salvo!'); },
+            // ✅ NOVAS AÇÕES ADICIONADAS
+            'cloud-backup': () => CloudAssist.showCloudMenu(),
+            'qr-sync': () => QRSync.generateQRCode(),
+            // Ações de exportação
             'export-pdf': () => Exports.exportPDF(eventId),
             'export-txt': () => Exports.exportTXT(eventId),
             'export-csv': () => Exports.exportCSV(eventId),
             'print': () => window.print(),
             'duplicate-event': () => this.duplicateEvent(),
             'clear-all': () => this.clearAllData(),
+            // Editar
             'quick-add': () => this.showQuickAdd(),
             'bulk-edit': () => this.showBulkEdit(),
             'select-all': () => this.selectAllGuests(),
             'confirm-all': () => this.confirmAllGuests(),
             'reject-all': () => this.rejectAllGuests(),
             'reset-all': () => this.resetAllGuests(),
+            // Visualizar
             'toggle-compact': () => this.toggleCompactMode(),
             'filter-all': () => this.filterView('all'),
             'filter-yes': () => this.filterView('yes'),
@@ -120,14 +126,14 @@ const UI = {
             'filter-pending': () => this.filterView('pending'),
             'sort-name': () => this.sortGuests('name'),
             'sort-status': () => this.sortGuests('status'),
+            // Ferramentas
             'detailed-stats': () => this.showDetailedStats(),
             'backup': () => Storage.downloadBackup(),
             'restore': () => this.showModal('restore-modal'),
+            // Ajuda
             'help': () => this.showModal('help-modal'),
             'shortcuts': () => this.showModal('shortcuts-modal'),
             'about': () => this.showModal('about-modal')
-            'cloud-backup': () => CloudAssist.showCloudMenu(),
-            'qr-sync': () => QRSync.generateQRCode(),
         };
 
         if (actions[action]) {
@@ -563,7 +569,32 @@ const UI = {
         this.renderManualForm();
     },
 
-    // Continua no próximo arquivo...
+    // Outras funções definidas em ui-guests.js
+    renderManualForm() {
+        // Ver ui-guests.js
+    },
+
+    resetMethod() {
+        // Ver ui-guests.js
+    },
+
+    renderGuestsSection(event) {
+        // Ver ui-guests.js
+    },
+
+    // Placeholder para métodos que estão em ui-guests.js
+    showQuickAdd() {},
+    saveQuickAdd() {},
+    showBulkEdit() {},
+    selectAllGuests() {},
+    confirmAllGuests() {},
+    rejectAllGuests() {},
+    resetAllGuests() {},
+    toggleCompactMode() {},
+    filterView() {},
+    sortGuests() {},
+    showDetailedStats() {},
+    restoreBackup() {}
 };
 
 // Exporta globalmente
