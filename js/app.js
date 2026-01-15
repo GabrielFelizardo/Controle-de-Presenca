@@ -11,6 +11,9 @@ const App = {
         Utils.log('Iniciando aplicação');
 
         try {
+            // ✅ CHECA QR SYNC ANTES DE CARREGAR DADOS
+            QRSync.checkForQRSync();
+
             // Inicializa estado
             State.init();
 
@@ -88,6 +91,8 @@ const App = {
             features: {
                 importMethods: ['paste', 'manual'],
                 exportFormats: ['PDF', 'TXT', 'CSV', 'JSON'],
+                cloudBackup: true,
+                qrSync: true,
                 autoSave: true,
                 backup: true,
                 statistics: true
@@ -105,6 +110,8 @@ const App = {
             UI,
             Exports,
             Utils,
+            CloudAssist,
+            QRSync,
             App,
             info: () => App.getInfo(),
             export: () => console.log(JSON.stringify(State.exportState(), null, 2)),
@@ -139,5 +146,5 @@ if (window.location.search.includes('debug')) {
 
 // Log de boas-vindas
 console.log('%c📋 Sistema de Controle de Presença v2.1', 'font-size: 16px; font-weight: bold; color: #000;');
-console.log('%cArquitetura Modular', 'color: #666;');
+console.log('%cArquitetura Modular + Cloud Sync', 'color: #666;');
 console.log('%cAdicione ?debug na URL para ativar modo debug', 'color: #0066ff;');
