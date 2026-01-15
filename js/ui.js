@@ -126,6 +126,8 @@ const UI = {
             'help': () => this.showModal('help-modal'),
             'shortcuts': () => this.showModal('shortcuts-modal'),
             'about': () => this.showModal('about-modal')
+            'cloud-backup': () => CloudAssist.showCloudMenu(),
+            'qr-sync': () => QRSync.generateQRCode(),
         };
 
         if (actions[action]) {
