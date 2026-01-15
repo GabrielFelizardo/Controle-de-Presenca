@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Controle de Presença</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- MENU BAR -->
+    <nav class="menu-bar">
+        <div class="menu-container">
+            <div class="menu-items">
+                <!-- ARQUIVO -->
+                <div class="menu-item">
+                    <button class="menu-button" data-menu="arquivo">📁 Arquivo</button>
+                    <div class="dropdown">
+                        <button class="dropdown-item" data-action="new-event">Novo Evento</button>
+                        <button class="dropdown-item" data-action="save">Salvar <span class="shortcut">Ctrl+S</span></button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" data-action="export-pdf">Exportar PDF</button>
+                        <button class="dropdown-item" data-action="export-txt">Exportar TXT</button>
+                        <button class="dropdown-item" data-action="export-csv">Exportar CSV</button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" data-action="print">Imprimir <span class="shortcut">Ctrl+P</span></button>
+                        <button class="dropdown-item" data-action="duplicate-event">Duplicar Evento</button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item danger" data-action="clear-all">Limpar Tudo</button>
+                    </div>
+                </div>
+
+                <!-- EDITAR -->
+                <div class="menu-item">
+                    <button class="menu-button" data-menu="editar">✏️ Editar</button>
+                    <div class="dropdown">
+                        <button class="dropdown-item" data-action="quick-add">Adicionar Rápido</button>
+                        <button class="dropdown-item" data-action="bulk-edit">Editar em Lote</button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" data-action="select-all">Selecionar Todos</button>
+                        <button class="dropdown-item" data-action="confirm-all">Confirmar Todos</button>
+                        <button class="dropdown-item" data-action="reject-all">Recusar Todos</button>
+                        <button class="dropdown-item" data-action="reset-all">Resetar Status</button>
+                    </div>
+                </div>
+
+                <!-- VISUALIZAR -->
+                <div class="menu-item">
+                    <button class="menu-button" data-menu="visualizar">👁 Visualizar</button>
+                    <div class="dropdown">
+                        <button class="dropdown-item" data-action="toggle-compact">Modo Compacto</button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" data-action="filter-all">Mostrar: Todos</button>
+                        <button class="dropdown-item" data-action="filter-yes">Mostrar: Confirmados</button>
+                        <button class="dropdown-item" data-action="filter-no">Mostrar: Recusas</button>
+                        <button class="dropdown-item" data-action="filter-pending">Mostrar: Pendentes</button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" data-action="sort-name">Ordenar: Nome A-Z</button>
+                        <button class="dropdown-item" data-action="sort-status">Ordenar: Status</button>
+                    </div>
+                </div>
+
+                <!-- FERRAMENTAS -->
+                <div class="menu-item">
+                    <button class="menu-button" data-menu="ferramentas">🔧 Ferramentas</button>
+                    <div class="dropdown">
+                        <button class="dropdown-item" data-action="detailed-stats">Estatísticas Detalhadas</button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" data-action="backup">Backup (Download)</button>
+                        <button class="dropdown-item" data-action="restore">Restaurar Backup</button>
+                    </div>
+                </div>
+
+                <!-- AJUDA -->
+                <div class="menu-item">
+                    <button class="menu-button" data-menu="ajuda">❓ Ajuda</button>
+                    <div class="dropdown">
+                        <button class="dropdown-item" data-action="help">Como Usar</button>
+                        <button class="dropdown-item" data-action="shortcuts">Atalhos de Teclado</button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" data-action="about">Sobre o Sistema</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header class="header">
+            <div>
+                <h1 class="heading-1">CONTROLE DE PRESENÇA</h1>
+                <p class="label">Sistema de Gestão de Eventos</p>
+                <span class="auto-save" id="auto-save">✓ AUTO-SALVO</span>
+            </div>
+        </header>
+
+        <div class="tabs-wrapper">
+            <div class="tabs" id="tabs-container"></div>
+        </div>
+
+        <div id="event-content"></div>
+    </div>
+
+    <!-- MODALS -->
+    <div class="modal" id="confirm-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="confirm-title">CONFIRMAR</h2>
+            </div>
+            <p id="confirm-message"></p>
+            <div class="modal-actions">
+                <button class="btn" data-modal-action="cancel">CANCELAR</button>
+                <button class="btn btn-danger" id="confirm-action">CONFIRMAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">EDITAR CONVIDADO</h2>
+            </div>
+            <div id="edit-fields"></div>
+            <div class="modal-actions">
+                <button class="btn" data-modal-action="cancel">CANCELAR</button>
+                <button class="btn btn-success" data-modal-action="save-edit">SALVAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="new-event-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">NOVO EVENTO</h2>
+            </div>
+            <div class="form-group">
+                <label class="label">NOME DO EVENTO</label>
+                <input type="text" class="input" id="new-event-name" placeholder="Ex: Aniversário do João">
+            </div>
+            <div class="form-group">
+                <label class="label">DATA DO EVENTO</label>
+                <input type="date" class="input" id="new-event-date">
+            </div>
+            <div class="modal-actions">
+                <button class="btn" data-modal-action="cancel">CANCELAR</button>
+                <button class="btn btn-success" data-modal-action="create-event">CRIAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="quick-add-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">ADICIONAR RÁPIDO</h2>
+            </div>
+            <div id="quick-add-fields"></div>
+            <div class="modal-actions">
+                <button class="btn" data-modal-action="cancel">CANCELAR</button>
+                <button class="btn btn-success" data-modal-action="save-quick-add">ADICIONAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="bulk-edit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">EDITAR EM LOTE</h2>
+            </div>
+            <p>Aplique uma ação para todos os convidados selecionados:</p>
+            <div style="margin: var(--space-3) 0;">
+                <button class="btn btn-success" data-bulk-action="yes" style="width: 100%; margin-bottom: var(--space-2);">✓ CONFIRMAR SELECIONADOS</button>
+                <button class="btn btn-danger" data-bulk-action="no" style="width: 100%; margin-bottom: var(--space-2);">✗ RECUSAR SELECIONADOS</button>
+                <button class="btn" data-bulk-action="reset" style="width: 100%;">⟲ RESETAR SELECIONADOS</button>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" data-modal-action="cancel" style="grid-column: 1 / -1;">FECHAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="stats-modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2 class="modal-title">📊 ESTATÍSTICAS DETALHADAS</h2>
+            </div>
+            <div id="stats-content"></div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" data-modal-action="cancel" style="grid-column: 1 / -1;">FECHAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="restore-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">RESTAURAR BACKUP</h2>
+            </div>
+            <div class="form-group">
+                <label class="label">SELECIONE O ARQUIVO</label>
+                <input type="file" id="restore-file" accept=".json" class="input">
+                <div class="help-note">
+                    <p class="body-text-small">Selecione um arquivo de backup (.json) gerado anteriormente.</p>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" data-modal-action="cancel">CANCELAR</button>
+                <button class="btn btn-success" data-modal-action="restore-backup">RESTAURAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="help-modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2 class="modal-title">COMO USAR</h2>
+            </div>
+            <div style="line-height: 1.8;">
+                <h3 style="margin-bottom: 1rem;">PRIMEIROS PASSOS</h3>
+                <p><strong>1. Escolha o método:</strong> Copiar/Colar da planilha ou Criar Manual</p>
+                <p><strong>2. Adicione convidados:</strong> Cole dados ou preencha manualmente</p>
+                <p><strong>3. Marque presença:</strong> Clique em SIM ou NÃO para cada convidado</p>
+                <p><strong>4. Exporte:</strong> PDF, TXT ou CSV quando precisar</p>
+                
+                <h3 style="margin: 2rem 0 1rem;">MENU ARQUIVO</h3>
+                <p>• <strong>Novo Evento:</strong> Cria evento adicional (abas)</p>
+                <p>• <strong>Exportar CSV:</strong> Abre no Excel/Sheets</p>
+                <p>• <strong>Duplicar Evento:</strong> Copia estrutura para reusar</p>
+                
+                <h3 style="margin: 2rem 0 1rem;">MENU EDITAR</h3>
+                <p>• <strong>Adicionar Rápido:</strong> Popup para adicionar sem formulário grande</p>
+                <p>• <strong>Editar em Lote:</strong> Muda vários de uma vez</p>
+                <p>• <strong>Ações em Massa:</strong> Confirma/Recusa todos</p>
+                
+                <h3 style="margin: 2rem 0 1rem;">DICAS</h3>
+                <p>• Dados salvam automaticamente no navegador</p>
+                <p>• Use Ctrl+S para salvar manualmente</p>
+                <p>• Faça backup periodicamente (Ferramentas → Backup)</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" data-modal-action="cancel" style="grid-column: 1 / -1;">ENTENDI</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="shortcuts-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">ATALHOS DE TECLADO</h2>
+            </div>
+            <div style="display: grid; gap: var(--space-2);">
+                <div><strong>Ctrl + S</strong> - Salvar</div>
+                <div><strong>Ctrl + P</strong> - Imprimir</div>
+                <div><strong>Ctrl + F</strong> - Focar na busca</div>
+                <div><strong>Esc</strong> - Fechar modal</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" data-modal-action="cancel" style="grid-column: 1 / -1;">ENTENDI</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="about-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">SOBRE O SISTEMA</h2>
+            </div>
+            <div style="line-height: 1.8; text-align: center;">
+                <p style="font-size: 48px; margin-bottom: 1rem;">📋</p>
+                <h3>SISTEMA DE CONTROLE DE PRESENÇA</h3>
+                <p style="margin: 1rem 0; color: var(--gray-600);">Versão 2.1 - Arquitetura Modular</p>
+                <p>Sistema completo para gerenciar listas de convidados em eventos.</p>
+                <p style="margin-top: 2rem; font-size: 12px; color: var(--gray-600);">Desenvolvido com Swiss Design · 2026</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" data-modal-action="cancel" style="grid-column: 1 / -1;">FECHAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Application Scripts (Order Matters!) -->
+    <script src="js/utils.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/exports.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/ui-guests.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
