@@ -1,6 +1,7 @@
 /**
- * UI.JS
+ * UI.JS - v2.3
  * Renderização e manipulação do DOM
+ * INTEGRADO: Autocompletar + Abas Editáveis + Footer
  */
 
 const UI = {
@@ -225,6 +226,7 @@ const UI = {
 
     /**
      * Renderiza abas dos eventos
+     * ✅ v2.3: INTEGRADO com EditableTabs
      */
     renderTabs() {
         const container = document.getElementById('tabs-container');
@@ -233,6 +235,7 @@ const UI = {
         State.events.forEach(event => {
             const tab = document.createElement('button');
             tab.className = `tab ${event.id === State.currentEventId ? 'active' : ''}`;
+            tab.dataset.eventId = event.id;
             
             let tabContent = event.name;
             if (State.events.length > 1) {
@@ -250,6 +253,9 @@ const UI = {
             });
             
             container.appendChild(tab);
+            
+            // ✅ NOVO v2.3: Torna aba editável
+            EditableTabs.makeTabEditable(tab, event.id);
         });
 
         // Botão nova aba
@@ -262,11 +268,15 @@ const UI = {
 
     /**
      * Troca para evento específico
+     * ✅ v2.3: Atualiza abas editáveis
      */
     switchToEvent(eventId) {
         State.currentEventId = eventId;
         this.renderTabs();
         this.renderEventContent();
+        
+        // ✅ NOVO v2.3: Atualiza abas editáveis após renderizar
+        setTimeout(() => EditableTabs.updateAllTabs(), 100);
     },
 
     /**
@@ -470,7 +480,13 @@ const UI = {
                 };
                 
                 columns.forEach((col, idx) => {
-                    guest[col] = (values[idx] || '').trim();
+                    const value = (values[idx] || '').trim();
+                    guest[col] = value;
+                    
+                    // ✅ NOVO v2.3: Registra nome frequente
+                    if (col.toLowerCase().includes('nome') && value) {
+                        NameAutocomplete.registerNameUsage(value);
+                    }
                 });
                 
                 guests.push(guest);
@@ -532,12 +548,12 @@ const UI = {
             document.getElementById('btn-setup-columns').addEventListener('click', () => this.setupManualColumns());
             document.getElementById('btn-reset-method-2').addEventListener('click', () => this.resetMethod());
         } else {
-            this.renderGuestsSection(event);
+            this.renderManualForm(event);
         }
     },
 
     /**
-     * Setup colunas manuais
+     * Configura colunas manuais
      */
     setupManualColumns() {
         const input = document.getElementById('column-names').value.trim();
@@ -560,8 +576,221 @@ const UI = {
         
         Storage.save();
         this.renderManualForm();
-    }
+    },
+
+    /**
+     * Renderiza formulário manual
+     * ✅ v2.3: INTEGRADO com NameAutocomplete
+     */
+    renderManualForm() {
+        const event = State.getCurrentEvent();
+        if (event.guests.length === 0) return;
+
+        const container = document.getElementById('event-content');
+        
+        container.innerHTML = `
+            <section class="manual-section active">
+                <div class="form-group">
+                    <label class="label">ADICIONAR CONVIDADO</label>
+                    <div class="manual-entry-row">
+                        <div style="display: grid; gap: var(--space-2); grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                            ${event.columns.map(col => `
+                                <div>
+                                    <label class="label">${col.toUpperCase()}</label>
+                                    <input 
+                                        type="text" 
+                                        class="input manual-input" 
+                                        data-column="${col}" 
+                                        placeholder="${col}"
+                                        id="manual-input-${col.replace(/\s+/g, '-')}"
+                                    >
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="btn btn-success" id="btn-add-manual" style="margin-top: var(--space-2);">ADICIONAR</button>
+                    </div>
+                    <button class="btn" id="btn-reset-method-manual" style="margin-top: var(--space-2);">← VOLTAR</button>
+                </div>
+            </section>
+        `;
+
+        // ✅ NOVO v2.3: Ativa autocompletar no primeiro campo (geralmente Nome)
+        const firstInput = container.querySelector('.manual-input');
+        if (firstInput) {
+            NameAutocomplete.attachToInput(firstInput);
+        }
+
+        // Event listeners
+        document.getElementById('btn-add-manual').addEventListener('click', () => this.addManualGuest());
+        document.getElementById('btn-reset-method-manual').addEventListener('click', () => this.resetMethod());
+
+        // Renderiza lista existente
+        this.renderGuestsSection(event);
+        
+        // Foca no primeiro input
+        if (firstInput) {
+            firstInput.focus();
+        }
+    },
+
+    /**
+     * Adiciona convidado manual
+     * ✅ v2.3: Registra nome frequente
+     */
+    addManualGuest() {
+        const inputs = document.querySelectorAll('.manual-input');
+        const guest = {
+            id: Utils.generateId(),
+            status: null
+        };
+
+        let hasData = false;
+        inputs.forEach(input => {
+            const column = input.dataset.column;
+            const value = input.value.trim();
+            guest[column] = value;
+            if (value) hasData = true;
+            
+            // ✅ NOVO v2.3: Registra nome frequente
+            if (column.toLowerCase().includes('nome') && value) {
+                NameAutocomplete.registerNameUsage(value);
+            }
+        });
+
+        if (!hasData) {
+            alert('Preencha pelo menos um campo!');
+            return;
+        }
+
+        // Adiciona ao evento
+        State.addGuest(State.currentEventId, guest);
+        Storage.autoSave();
+
+        // Limpa inputs
+        inputs.forEach(input => input.value = '');
+
+        // Re-renderiza
+        this.renderEventContent();
+
+        // Foca no primeiro input
+        const firstInput = document.querySelector('.manual-input');
+        if (firstInput) {
+            firstInput.focus();
+        }
+    },
+
+    /**
+     * Reseta método
+     */
+    resetMethod() {
+        this.showConfirm('TROCAR MÉTODO', 'Isso vai limpar os dados atuais. Continuar?', () => {
+            State.setEventMethod(State.currentEventId, null);
+            State.setEventColumns(State.currentEventId, []);
+            State.setEventGuests(State.currentEventId, []);
+            Storage.save();
+            this.renderEventContent();
+        });
+    },
+
+    /**
+     * Mostra quick add
+     * ✅ v2.3: INTEGRADO com NameAutocomplete
+     */
+    showQuickAdd() {
+        const event = State.getCurrentEvent();
+        if (!event || event.columns.length === 0) {
+            alert('Configure as colunas primeiro!');
+            return;
+        }
+
+        const fieldsContainer = document.getElementById('quick-add-fields');
+        fieldsContainer.innerHTML = event.columns.map(col => `
+            <div class="form-group">
+                <label class="label">${col.toUpperCase()}</label>
+                <input 
+                    type="text" 
+                    class="input quick-add-input" 
+                    data-column="${col}" 
+                    placeholder="${col}"
+                    id="quick-add-${col.replace(/\s+/g, '-')}"
+                >
+            </div>
+        `).join('');
+
+        this.showModal('quick-add-modal');
+
+        // ✅ NOVO v2.3: Ativa autocompletar no primeiro campo
+        const firstInput = fieldsContainer.querySelector('.quick-add-input');
+        if (firstInput) {
+            NameAutocomplete.attachToInput(firstInput);
+            setTimeout(() => firstInput.focus(), 100);
+        }
+    },
+
+    /**
+     * Salva quick add
+     * ✅ v2.3: Registra nome frequente
+     */
+    saveQuickAdd() {
+        const inputs = document.querySelectorAll('.quick-add-input');
+        const guest = {
+            id: Utils.generateId(),
+            status: null
+        };
+
+        let hasData = false;
+        inputs.forEach(input => {
+            const column = input.dataset.column;
+            const value = input.value.trim();
+            guest[column] = value;
+            if (value) hasData = true;
+            
+            // ✅ NOVO v2.3: Registra nome frequente
+            if (column.toLowerCase().includes('nome') && value) {
+                NameAutocomplete.registerNameUsage(value);
+            }
+        });
+
+        if (!hasData) {
+            alert('Preencha pelo menos um campo!');
+            return;
+        }
+
+        State.addGuest(State.currentEventId, guest);
+        Storage.autoSave();
+
+        this.closeModal('quick-add-modal');
+        this.renderEventContent();
+    },
+
+    /**
+     * Renderiza seção de convidados
+     * (Implementação completa em ui-guests.js)
+     */
+    renderGuestsSection(event) {
+        // Esta função é implementada em ui-guests.js
+        // Placeholder para manter estrutura
+    },
+
+    // Placeholder para outras funções implementadas em ui-guests.js
+    showBulkEdit() {},
+    selectAllGuests() {},
+    confirmAllGuests() {},
+    rejectAllGuests() {},
+    resetAllGuests() {},
+    toggleCompactMode() {},
+    filterView() {},
+    sortGuests() {},
+    showDetailedStats() {},
+    restoreBackup() {},
+    saveEditGuest() {}
 };
 
 // Exporta globalmente
 window.UI = UI;
+
+console.log('✅ UI.js v2.3 carregado com sucesso!');
+console.log('Features integradas:');
+console.log('  - Autocompletar nomes frequentes');
+console.log('  - Edição inline de abas');
+console.log('  - Footer profissional');
