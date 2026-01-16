@@ -1,0 +1,247 @@
+/**
+ * FOOTER - v2.3
+ * Footer minimalista com créditos
+ */
+
+/* ========================================
+   FOOTER
+   ======================================== */
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--black);
+    color: var(--white);
+    padding: var(--space-2) var(--space-3);
+    border-top: 2px solid var(--gray-900);
+    z-index: 100;
+    font-size: 12px;
+    text-align: center;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-version {
+    font-weight: var(--font-weight-semibold);
+    opacity: 0.7;
+    margin-right: var(--space-2);
+}
+
+.footer-developer {
+    font-weight: var(--font-weight-bold);
+}
+
+.footer-developer strong {
+    font-weight: var(--font-weight-black);
+}
+
+/* Ajusta padding do container pra não ficar atrás do footer */
+.container {
+    padding-bottom: 50px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .footer {
+        font-size: 10px;
+        padding: var(--space-1) var(--space-2);
+    }
+    
+    .footer-version {
+        display: block;
+        margin-bottom: 4px;
+        margin-right: 0;
+    }
+}
+
+/* ========================================
+   AUTOCOMPLETAR NOMES
+   ======================================== */
+
+.name-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--white);
+    border: 2px solid var(--black);
+    border-top: none;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.name-suggestions.active {
+    display: block;
+}
+
+.name-suggestion-item {
+    padding: var(--space-2) var(--space-3);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.name-suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.name-suggestion-item:hover {
+    background: var(--gray-100);
+    transform: translateX(4px);
+}
+
+.name-suggestion-item.selected {
+    background: var(--black);
+    color: var(--white);
+}
+
+.name-suggestion-name {
+    font-weight: var(--font-weight-semibold);
+    font-size: 14px;
+}
+
+.name-suggestion-meta {
+    font-size: 11px;
+    color: var(--gray-600);
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+}
+
+.name-suggestion-item:hover .name-suggestion-meta,
+.name-suggestion-item.selected .name-suggestion-meta {
+    color: inherit;
+    opacity: 0.7;
+}
+
+.name-suggestion-count {
+    background: var(--gray-900);
+    color: var(--white);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: var(--font-weight-bold);
+}
+
+.name-suggestion-item:hover .name-suggestion-count,
+.name-suggestion-item.selected .name-suggestion-count {
+    background: var(--white);
+    color: var(--black);
+}
+
+/* Container com posição relativa para suggestions */
+.input-with-suggestions {
+    position: relative;
+}
+
+/* Indicador visual de autocompletar disponível */
+.input-with-autocomplete {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><text x="0" y="12" font-size="12">⚡</text></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 35px !important;
+}
+
+/* ========================================
+   EDIÇÃO INLINE DE ABAS
+   ======================================== */
+
+.tab-editable {
+    cursor: text;
+    position: relative;
+}
+
+.tab-editable:hover {
+    background: var(--gray-100);
+}
+
+.tab-editable.editing {
+    background: var(--white);
+    border: 2px solid var(--accent-primary);
+    padding: 0;
+}
+
+.tab-edit-input {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    border: none;
+    background: transparent;
+    font-size: inherit;
+    font-weight: inherit;
+    font-family: inherit;
+    text-transform: inherit;
+    letter-spacing: inherit;
+    outline: none;
+}
+
+.tab-edit-hint {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--black);
+    color: var(--white);
+    font-size: 10px;
+    padding: 4px 8px;
+    text-align: center;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 1000;
+}
+
+.tab-editable:hover .tab-edit-hint {
+    opacity: 1;
+}
+
+.tab-edit-hint::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-bottom-color: var(--black);
+}
+
+/* Animação ao salvar */
+.tab-save-animation {
+    animation: tabSaveFlash 0.4s ease-out;
+}
+
+@keyframes tabSaveFlash {
+    0%, 100% {
+        background: transparent;
+    }
+    50% {
+        background: var(--accent-success);
+        color: var(--white);
+    }
+}
+
+/* Mobile - ajustes */
+@media (max-width: 768px) {
+    .name-suggestions {
+        max-height: 150px;
+        font-size: 13px;
+    }
+    
+    .name-suggestion-item {
+        padding: var(--space-1) var(--space-2);
+    }
+    
+    .tab-edit-hint {
+        display: none; /* Esconde hint no mobile */
+    }
+}
