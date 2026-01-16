@@ -1,0 +1,136 @@
+/**
+ * CORREÇÃO: Tabela Responsiva com Scroll Horizontal
+ * Resolve problema de muitas colunas
+ */
+
+/* ========================================
+   TABELA RESPONSIVA - SCROLL HORIZONTAL
+   ======================================== */
+
+.table-wrapper {
+    /* Adiciona scroll horizontal */
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+}
+
+/* Container com sombra indicando scroll */
+.table-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 30px;
+    background: linear-gradient(to left, 
+        rgba(0, 0, 0, 0.1) 0%, 
+        transparent 100%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.table-wrapper.has-scroll::after {
+    opacity: 1;
+}
+
+/* Tabela desktop com largura mínima */
+@media (min-width: 1024px) {
+    .desktop-table {
+        min-width: 100%;
+        width: max-content; /* Expande conforme necessário */
+    }
+    
+    .desktop-table th,
+    .desktop-table td {
+        /* Largura mínima por coluna */
+        min-width: 120px;
+        max-width: 300px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* Primeira coluna (nome) mais larga */
+    .desktop-table th:first-child,
+    .desktop-table td:first-child {
+        min-width: 200px;
+        position: sticky;
+        left: 0;
+        background: var(--white);
+        z-index: 10;
+        box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Coluna de ações fixa na direita */
+    .desktop-table th:last-child,
+    .desktop-table td:last-child {
+        position: sticky;
+        right: 0;
+        background: var(--white);
+        z-index: 10;
+        box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05);
+    }
+}
+
+/* Indicador visual de scroll */
+.table-scroll-hint {
+    display: none;
+    padding: var(--space-2);
+    background: #fff3cd;
+    border-left: 4px solid #ffb700;
+    margin-bottom: var(--space-2);
+    font-size: 13px;
+}
+
+.table-scroll-hint.visible {
+    display: block;
+}
+
+/* Cards mobile - scroll horizontal também */
+#guests-cards {
+    display: grid;
+    gap: var(--space-2);
+}
+
+@media (max-width: 1023px) {
+    #guests-cards {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .guest-card {
+        min-width: 280px;
+    }
+}
+
+/* ========================================
+   FORMULÁRIO MANUAL - SCROLL HORIZONTAL
+   ======================================== */
+
+.manual-entry-row > div:first-child {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Quando tem muitas colunas no manual */
+.manual-entry-row.many-columns > div:first-child {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+/* ========================================
+   PREVIEW DE IMPORTAÇÃO - SCROLL
+   ======================================== */
+
+.import-preview .preview-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+}
+
+.import-preview table {
+    min-width: 100%;
+    width: max-content;
+}

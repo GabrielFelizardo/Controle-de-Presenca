@@ -1,0 +1,298 @@
+/**
+ * ESTILOS PARA TEMPLATES E MELHORIAS
+ */
+
+/* ========================================
+   CARDS DE TEMPLATES
+   ======================================== */
+
+.template-card {
+    padding: var(--space-3);
+    background: var(--white);
+    border: 2px solid var(--gray-300);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.template-card:hover {
+    border-color: var(--black);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.template-card .btn-small {
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.template-card:hover .btn-small {
+    opacity: 1;
+}
+
+/* Tags de colunas nos templates */
+.column-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    background: var(--gray-200);
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: var(--font-weight-semibold);
+    margin: 2px;
+}
+
+/* ========================================
+   PRESET TEMPLATES
+   ======================================== */
+
+.preset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-3);
+}
+
+.preset-card {
+    padding: var(--space-4);
+    background: var(--white);
+    border: 3px solid var(--gray-300);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-align: left;
+}
+
+.preset-card:hover {
+    border-color: var(--accent-primary);
+    transform: scale(1.02);
+    box-shadow: 0 8px 20px rgba(0, 102, 255, 0.15);
+}
+
+.preset-card.selected {
+    border-color: var(--accent-success);
+    background: #e8f5e9;
+}
+
+.preset-icon {
+    font-size: 48px;
+    margin-bottom: var(--space-2);
+}
+
+.preset-title {
+    font-size: 20px;
+    font-weight: var(--font-weight-black);
+    text-transform: uppercase;
+    margin-bottom: var(--space-2);
+}
+
+.preset-columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: var(--space-2);
+}
+
+/* ========================================
+   BOTÕES DE AÇÃO ACIMA DA TABELA
+   ======================================== */
+
+.table-actions-bar {
+    padding: var(--space-3);
+    border-bottom: 2px solid var(--gray-200);
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.table-actions-bar .btn {
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .table-actions-bar {
+        flex-direction: column;
+    }
+    
+    .table-actions-bar .btn {
+        width: 100%;
+    }
+}
+
+/* ========================================
+   HINT DE SCROLL
+   ======================================== */
+
+.table-scroll-hint {
+    padding: var(--space-2) var(--space-3);
+    background: linear-gradient(90deg, #fff3cd 0%, #fffbf0 100%);
+    border-left: 4px solid #ffb700;
+    margin-bottom: var(--space-2);
+    font-size: 13px;
+    font-weight: var(--font-weight-semibold);
+    text-align: center;
+    animation: pulseHint 2s ease-in-out infinite;
+}
+
+@keyframes pulseHint {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* ========================================
+   INDICADOR DE MUITAS COLUNAS
+   ======================================== */
+
+.many-columns-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: #e3f2fd;
+    border: 2px solid var(--accent-primary);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: var(--font-weight-bold);
+    margin-left: var(--space-2);
+}
+
+/* ========================================
+   MODAL IMPORT MORE
+   ======================================== */
+
+#import-more-modal .help-note {
+    background: #fff3cd;
+    border-left: 4px solid #ffb700;
+}
+
+/* ========================================
+   MELHORIAS NA TABELA
+   ======================================== */
+
+/* Colunas fixas com sombra mais suave */
+@media (min-width: 1024px) {
+    .desktop-table th:first-child,
+    .desktop-table td:first-child {
+        box-shadow: 3px 0 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .desktop-table th:last-child,
+    .desktop-table td:last-child {
+        box-shadow: -3px 0 8px rgba(0, 0, 0, 0.08);
+    }
+}
+
+/* Destaque ao passar mouse na linha */
+@media (min-width: 1024px) {
+    .desktop-table tbody tr:hover {
+        background: var(--gray-100) !important;
+        transform: scale(1.005);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+}
+
+/* Cabeçalho sticky */
+.desktop-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--white);
+}
+
+.desktop-table thead th {
+    background: var(--black);
+    color: var(--white);
+}
+
+/* ========================================
+   CONTADOR DE COLUNAS
+   ======================================== */
+
+.column-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: var(--gray-900);
+    color: var(--white);
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.5px;
+}
+
+.column-counter.many {
+    background: var(--accent-danger);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ========================================
+   FEEDBACK VISUAL MELHORADO
+   ======================================== */
+
+.success-feedback {
+    padding: var(--space-3);
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border: 2px solid var(--accent-success);
+    border-radius: 8px;
+    margin-bottom: var(--space-3);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.success-feedback::before {
+    content: '✓';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--accent-success);
+    color: var(--white);
+    border-radius: 50%;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* ========================================
+   ANIMAÇÕES SUAVES
+   ======================================== */
+
+@keyframes slideInFromRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.template-card,
+.preset-card {
+    animation: slideInFromRight 0.3s ease-out;
+}
+
+.template-card:nth-child(1) { animation-delay: 0.05s; }
+.template-card:nth-child(2) { animation-delay: 0.1s; }
+.template-card:nth-child(3) { animation-delay: 0.15s; }
+.template-card:nth-child(4) { animation-delay: 0.2s; }
+
+/* ========================================
+   RESPONSIVO - MOBILE
+   ======================================== */
+
+@media (max-width: 768px) {
+    .table-scroll-hint {
+        font-size: 11px;
+        padding: var(--space-1) var(--space-2);
+    }
+    
+    .template-card {
+        padding: var(--space-2);
+    }
+    
+    .column-tag {
+        font-size: 10px;
+        padding: 2px 8px;
+    }
+}
