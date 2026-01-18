@@ -1,6 +1,6 @@
 /**
- * EDITABLE TABS - v2.3
- * Sistema para editar nome das abas inline
+ * EDITABLE TABS - v2.3 (COM ÍCONE)
+ * Sistema para editar nome das abas usando ícone ✏️
  */
 
 const EditableTabs = {
@@ -11,7 +11,7 @@ const EditableTabs = {
      * Inicializa o sistema
      */
     init() {
-        console.log('EditableTabs iniciado');
+        console.log('EditableTabs iniciado (versão com ícone)');
     },
     
     /**
@@ -24,22 +24,42 @@ const EditableTabs = {
         // Adiciona classe editável
         tab.classList.add('tab-editable');
         
-        // Cria hint
-        if (!tab.querySelector('.tab-edit-hint')) {
-            const hint = document.createElement('div');
-            hint.className = 'tab-edit-hint';
-            hint.textContent = 'Duplo clique para editar';
-            tab.appendChild(hint);
+        // Reorganiza conteúdo da aba se ainda não foi feito
+        if (!tab.querySelector('.tab-content-wrapper')) {
+            const currentContent = tab.innerHTML;
+            const closeBtn = tab.querySelector('.tab-close');
+            
+            // Pega o texto (sem o botão X)
+            let textContent = currentContent;
+            if (closeBtn) {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = currentContent;
+                tempDiv.querySelector('.tab-close')?.remove();
+                textContent = tempDiv.textContent.trim();
+            }
+            
+            // Reconstrói com wrapper
+            tab.innerHTML = `
+                <span class="tab-content-wrapper">
+                    <span class="tab-name-text">${textContent}</span>
+                    <span class="tab-edit-icon" title="Editar nome">✏️</span>
+                </span>
+            `;
+            
+            // Adiciona botão X de volta se tinha
+            if (closeBtn) {
+                tab.appendChild(closeBtn);
+            }
         }
         
-        // Event listener para duplo clique
-        tab.addEventListener('dblclick', (e) => {
-            // Ignora se clicar no botão fechar
-            if (e.target.classList.contains('tab-close')) return;
-            
-            e.stopPropagation();
-            this.startEditing(tab, eventId);
-        });
+        // Event listener no ícone de editar
+        const editIcon = tab.querySelector('.tab-edit-icon');
+        if (editIcon) {
+            editIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.startEditing(tab, eventId);
+            });
+        }
     },
     
     /**
@@ -53,18 +73,14 @@ const EditableTabs = {
         
         this.currentlyEditing = tab;
         
-        // Pega nome atual (sem o botão X)
-        const closeBtn = tab.querySelector('.tab-close');
-        const textNode = Array.from(tab.childNodes).find(
-            node => node.nodeType === Node.TEXT_NODE
-        );
-        const currentName = textNode ? textNode.textContent.trim() : tab.textContent.trim();
+        // Pega nome atual
+        const nameText = tab.querySelector('.tab-name-text');
+        const currentName = nameText ? nameText.textContent.trim() : tab.textContent.trim();
         
         this.originalName = currentName;
         
-        // Remove hint
-        const hint = tab.querySelector('.tab-edit-hint');
-        if (hint) hint.remove();
+        // Adiciona helper text
+        this.showHelper('Digite o novo nome e pressione Enter');
         
         // Limpa conteúdo
         tab.innerHTML = '';
@@ -116,6 +132,9 @@ const EditableTabs = {
         const newName = input.value.trim();
         const eventId = parseFloat(input.dataset.eventId);
         
+        // Esconde helper
+        this.hideHelper();
+        
         // Valida nome
         if (!newName) {
             alert('Nome não pode ser vazio!');
@@ -153,6 +172,9 @@ const EditableTabs = {
         const input = tab.querySelector('.tab-edit-input');
         const eventId = input ? parseFloat(input.dataset.eventId) : null;
         
+        // Esconde helper
+        this.hideHelper();
+        
         // Restaura com nome original
         this.restoreTab(tab, this.originalName, eventId);
     },
@@ -167,8 +189,26 @@ const EditableTabs = {
         // Limpa conteúdo
         tab.innerHTML = '';
         
-        // Adiciona nome
-        tab.appendChild(document.createTextNode(name));
+        // Reconstrói conteúdo
+        const wrapper = document.createElement('span');
+        wrapper.className = 'tab-content-wrapper';
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'tab-name-text';
+        nameSpan.textContent = name;
+        
+        const editIcon = document.createElement('span');
+        editIcon.className = 'tab-edit-icon';
+        editIcon.title = 'Editar nome';
+        editIcon.textContent = '✏️';
+        editIcon.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.startEditing(tab, eventId);
+        });
+        
+        wrapper.appendChild(nameSpan);
+        wrapper.appendChild(editIcon);
+        tab.appendChild(wrapper);
         
         // Adiciona botão fechar se tiver múltiplos eventos
         if (State.events.length > 1) {
@@ -182,15 +222,34 @@ const EditableTabs = {
             tab.appendChild(closeBtn);
         }
         
-        // Adiciona hint novamente
-        const hint = document.createElement('div');
-        hint.className = 'tab-edit-hint';
-        hint.textContent = 'Duplo clique para editar';
-        tab.appendChild(hint);
-        
         // Reseta variáveis
         this.currentlyEditing = null;
         this.originalName = null;
+    },
+    
+    /**
+     * Mostra helper text
+     */
+    showHelper(text) {
+        let helper = document.getElementById('tab-edit-helper');
+        if (!helper) {
+            helper = document.createElement('div');
+            helper.id = 'tab-edit-helper';
+            helper.className = 'tab-edit-helper';
+            document.body.appendChild(helper);
+        }
+        helper.textContent = text;
+        helper.classList.add('active');
+    },
+    
+    /**
+     * Esconde helper text
+     */
+    hideHelper() {
+        const helper = document.getElementById('tab-edit-helper');
+        if (helper) {
+            helper.classList.remove('active');
+        }
     },
     
     /**
@@ -198,12 +257,21 @@ const EditableTabs = {
      */
     updateAllTabs() {
         document.querySelectorAll('.tab:not(.new-tab)').forEach(tab => {
-            const eventId = State.events.find(e => 
-                tab.textContent.includes(e.name)
-            )?.id;
+            // Pega eventId do dataset ou procura pelo nome
+            let eventId = tab.dataset.eventId;
+            
+            if (!eventId) {
+                // Tenta encontrar pelo texto
+                const tabText = tab.textContent.replace('×', '').replace('✏️', '').trim();
+                const event = State.events.find(e => e.name === tabText);
+                if (event) {
+                    eventId = event.id;
+                    tab.dataset.eventId = eventId;
+                }
+            }
             
             if (eventId) {
-                this.makeTabEditable(tab, eventId);
+                this.makeTabEditable(tab, parseFloat(eventId));
             }
         });
     }
