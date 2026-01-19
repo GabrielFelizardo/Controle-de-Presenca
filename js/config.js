@@ -4,7 +4,7 @@
  */
 
 const API_CONFIG = {
-  // ⚠️ COLE SUA URL DO APPS SCRIPT AQUI APÓS O DEPLOY:
+  API_URL: 'https://script.google.com/macros/s/AKfycbyVVle9p5SFCsbBrQF95JgL14WE5Ecguo9Po6E3gq17yVaHzZ-Vl8J_TX3SHOHdaDZc/exec',
   API_URL: localStorage.getItem('apiUrl') || '',
   
   // ID da planilha do cliente (será preenchido automaticamente)
