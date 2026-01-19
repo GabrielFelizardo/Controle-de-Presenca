@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Controle de Presença v3.0</title>
+    <title>Sistema de Controle de Presença v3.1</title>
     
     <!-- CSS -->
     <link rel="stylesheet" href="css/styles.css">
@@ -73,8 +73,11 @@
                     <div class="dropdown">
                         <button class="dropdown-item" data-action="detailed-stats">Estatísticas Detalhadas</button>
                         <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" onclick="APISetup.showSetupModal()">
-                            📊 Configurar Google Sheets
+                        <button class="dropdown-item" onclick="window.open('https://drive.google.com')">
+                            📊 Abrir Minha Planilha
+                        </button>
+                        <button class="dropdown-item" onclick="AuthSystem.switchAccount()">
+                            🔄 Trocar de Conta
                         </button>
                         <div class="dropdown-divider"></div>
                         <button class="dropdown-item" data-action="backup">Backup (Download)</button>
@@ -100,8 +103,8 @@
         <header class="header">
             <div>
                 <h1 class="heading-1">CONTROLE DE PRESENÇA</h1>
-                <p class="label">Sistema de Gestão de Eventos v3.0</p>
-                <span class="auto-save" id="auto-save">✓ AUTO-SALVO</span>
+                <p class="label">Sistema de Gestão de Eventos v3.1</p>
+                <span class="auto-save" id="auto-save">✓ SINCRONIZADO</span>
             </div>
         </header>
 
@@ -112,7 +115,11 @@
         <div id="event-content"></div>
     </div>
 
-    <!-- MODALS -->
+    <!-- ========================================
+         MODALS - TODOS OS 10 MODALS
+         ======================================== -->
+
+    <!-- MODAL: CONFIRMAÇÃO -->
     <div class="modal" id="confirm-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -126,6 +133,7 @@
         </div>
     </div>
 
+    <!-- MODAL: EDITAR CONVIDADO -->
     <div class="modal" id="edit-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -139,6 +147,7 @@
         </div>
     </div>
 
+    <!-- MODAL: NOVO EVENTO -->
     <div class="modal" id="new-event-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -159,6 +168,7 @@
         </div>
     </div>
 
+    <!-- MODAL: ADICIONAR RÁPIDO -->
     <div class="modal" id="quick-add-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -172,6 +182,7 @@
         </div>
     </div>
 
+    <!-- MODAL: EDITAR EM LOTE -->
     <div class="modal" id="bulk-edit-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -189,6 +200,7 @@
         </div>
     </div>
 
+    <!-- MODAL: ESTATÍSTICAS -->
     <div class="modal" id="stats-modal">
         <div class="modal-content large">
             <div class="modal-header">
@@ -201,6 +213,7 @@
         </div>
     </div>
 
+    <!-- MODAL: RESTAURAR BACKUP -->
     <div class="modal" id="restore-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -220,29 +233,39 @@
         </div>
     </div>
 
+    <!-- MODAL: AJUDA -->
     <div class="modal" id="help-modal">
         <div class="modal-content large">
             <div class="modal-header">
                 <h2 class="modal-title">COMO USAR</h2>
             </div>
             <div style="padding: var(--space-4); line-height: 1.8;">
-                <h3 style="margin-bottom: 1rem;">PRIMEIROS PASSOS</h3>
-                <p><strong>1. Escolha o método:</strong> Copiar/Colar da planilha ou Criar Manual</p>
-                <p><strong>2. Adicione convidados:</strong> Cole dados ou preencha manualmente</p>
-                <p><strong>3. Marque presença:</strong> Clique em SIM ou NÃO para cada convidado</p>
-                <p><strong>4. Exporte:</strong> PDF, TXT ou CSV quando precisar</p>
+                <h3 style="margin-bottom: 1rem;">SISTEMA v3.1 - BASEADO EM EMAIL</h3>
+                <p><strong>1. Login:</strong> Digite seu email para acessar seus eventos</p>
+                <p><strong>2. Dados:</strong> Tudo fica salvo na sua planilha do Google Drive</p>
+                <p><strong>3. Multi-acesso:</strong> Use de qualquer computador com seu email</p>
+                <p><strong>4. Sincronização:</strong> Eventos e convidados salvam automaticamente</p>
                 
-                <h3 style="margin: 2rem 0 1rem;">FORMULÁRIOS ONLINE (OPCIONAL)</h3>
-                <p>• <strong>Configure:</strong> Menu Ferramentas → Configurar Google Sheets</p>
-                <p>• <strong>Use:</strong> Clique no ícone 📋 ao lado do nome do evento</p>
-                <p>• <strong>Compartilhe:</strong> Envie o link pros convidados</p>
-                <p>• <strong>Receba:</strong> Confirmações atualizam automaticamente!</p>
+                <h3 style="margin: 2rem 0 1rem;">CRIAR EVENTOS</h3>
+                <p>• Clique "+ NOVO" para criar evento</p>
+                <p>• Sistema cria uma ABA na planilha automaticamente</p>
+                <p>• Cada evento = 1 aba na sua planilha</p>
+                
+                <h3 style="margin: 2rem 0 1rem;">ADICIONAR CONVIDADOS</h3>
+                <p>• Clique "Adicionar Manualmente"</p>
+                <p>• Sistema adiciona LINHA na aba do evento</p>
+                <p>• Cada convidado = 1 linha na planilha</p>
+                
+                <h3 style="margin: 2rem 0 1rem;">VER SUA PLANILHA</h3>
+                <p>• Menu Ferramentas → Abrir Minha Planilha</p>
+                <p>• Ou acesse drive.google.com</p>
+                <p>• Procure: "Sistema Presença - seuemail@gmail.com"</p>
                 
                 <h3 style="margin: 2rem 0 1rem;">DICAS</h3>
-                <p>• Dados salvam automaticamente no navegador</p>
                 <p>• Sistema aprende nomes frequentes (autocompletar)</p>
                 <p>• Clique no ✏️ para editar nome do evento</p>
-                <p>• Faça backup periodicamente</p>
+                <p>• Google faz backup automático da planilha</p>
+                <p>• Pode exportar para Excel a qualquer momento</p>
             </div>
             <div class="modal-actions">
                 <button class="btn btn-primary" data-modal-action="cancel" style="grid-column: 1 / -1;">ENTENDI</button>
@@ -250,6 +273,7 @@
         </div>
     </div>
 
+    <!-- MODAL: ATALHOS -->
     <div class="modal" id="shortcuts-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -261,7 +285,7 @@
                 <div><strong>Ctrl + F</strong> - Focar na busca</div>
                 <div><strong>Esc</strong> - Fechar modal</div>
                 <div><strong>Clique no ✏️</strong> - Editar nome da aba</div>
-                <div><strong>Clique no 📋</strong> - Abrir formulário</div>
+                <div><strong>Enter no login</strong> - Acessar sistema</div>
             </div>
             <div class="modal-actions">
                 <button class="btn btn-primary" data-modal-action="cancel" style="grid-column: 1 / -1;">ENTENDI</button>
@@ -269,6 +293,7 @@
         </div>
     </div>
 
+    <!-- MODAL: SOBRE -->
     <div class="modal" id="about-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -277,9 +302,13 @@
             <div style="line-height: 1.8; text-align: center; padding: var(--space-4);">
                 <p style="font-size: 48px; margin-bottom: 1rem;">📋</p>
                 <h3>SISTEMA DE CONTROLE DE PRESENÇA</h3>
-                <p style="margin: 1rem 0; color: var(--gray-600);">Versão 3.0</p>
+                <p style="margin: 1rem 0; color: var(--gray-600);">Versão 3.1</p>
                 <p>Sistema completo para gerenciar listas de convidados em eventos.</p>
-                <p style="margin-top: 2rem;">Com formulários online e sincronização automática via Google Sheets.</p>
+                <p style="margin-top: 2rem;">Baseado em Google Sheets com login por email.</p>
+                <p style="margin-top: 1rem; font-size: 14px;">
+                    Seus dados ficam salvos na sua planilha do Google Drive.<br>
+                    Acesse de qualquer computador usando seu email.
+                </p>
                 <p style="margin-top: 2rem; font-size: 14px; color: var(--gray-600);">
                     Desenvolvido por Gabriel Felizardo
                 </p>
@@ -290,18 +319,28 @@
         </div>
     </div>
 
-    <!-- External Libraries -->
+    <!-- ========================================
+         BIBLIOTECAS EXTERNAS
+         ======================================== -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 
-    <!-- Application Scripts - ORDEM CORRETA! -->
+    <!-- ========================================
+         SCRIPTS DA APLICAÇÃO v3.1
+         ORDEM IMPORTA!
+         ======================================== -->
+    
+    <!-- Core -->
+    <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/state.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/exports.js"></script>
+    
+    <!-- Features -->
     <script src="js/name-autocomplete.js"></script>
     <script src="js/editable-tabs.js"></script>
     <script src="js/ui.js"></script>
@@ -309,10 +348,11 @@
     <script src="js/cloud-assist.js"></script>
     <script src="js/qr-sync.js"></script>
     <script src="js/usability-fixes.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/api-client.js"></script>
-    <script src="js/api-setup-ui.js"></script>
-    <script src="js/sheets-ui.js"></script>
-    <script src="js/app.js"></script>
+    
+    <!-- v3.1 - Sistema baseado em Email + Planilha -->
+    <script src="js/api-client-v3.1.js"></script>
+    <script src="js/sheet-sync.js"></script>
+    <script src="js/auth-system.js"></script>
+    <script src="js/app-v3.1.js"></script>
 </body>
 </html>
