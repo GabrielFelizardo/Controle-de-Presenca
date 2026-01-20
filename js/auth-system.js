@@ -1,26 +1,15 @@
 /**
- * SISTEMA DE AUTENTICAÇÃO v3.1.0
- * Gerencia login/logout via Google
- * ✅ CORRIGIDO: try-catch em autoLogin
+ * AUTH SYSTEM v3.1.1
+ * ✅ CORRIGIDO: Melhora UX e integração com API
  */
 
 const AuthSystem = {
-  // ========================================
-  // ESTADO
-  // ========================================
-  
   currentUser: null,
   isAuthenticated: false,
+  spreadsheetId: null,
   
-  // ========================================
-  // INICIALIZAÇÃO
-  // ========================================
-  
-  /**
-   * Inicializa sistema de autenticação
-   */
   init() {
-    console.log('🔐 Inicializando autenticação...');
+    console.log('🔐 Auth System v3.1.1 iniciando...');
     
     try {
       this.loadSavedUser();
@@ -32,35 +21,24 @@ const AuthSystem = {
         this.showLoginScreen();
       }
     } catch (error) {
-      console.error('❌ Erro ao inicializar autenticação:', error);
+      console.error('❌ Erro ao inicializar auth:', error);
       this.showLoginScreen();
     }
   },
   
-  /**
-   * Carrega usuário salvo
-   */
   loadSavedUser() {
     try {
       const saved = localStorage.getItem('auth_user');
       if (saved) {
         this.currentUser = JSON.parse(saved);
-        console.log('👤 Usuário salvo encontrado:', this.currentUser.email);
+        console.log('👤 Usuário salvo:', this.currentUser.email);
       }
     } catch (error) {
-      console.warn('⚠️ Erro ao carregar usuário salvo:', error);
+      console.warn('⚠️ Erro ao carregar usuário:', error);
       localStorage.removeItem('auth_user');
     }
   },
   
-  // ========================================
-  // LOGIN
-  // ========================================
-  
-  /**
-   * Auto-login com usuário salvo
-   * ✅ CORRIGIDO: adicionado try-catch
-   */
   async autoLogin() {
     if (!this.currentUser || !this.currentUser.email) {
       this.showLoginScreen();
@@ -68,19 +46,17 @@ const AuthSystem = {
     }
     
     try {
-      console.log('🔄 Tentando auto-login...');
+      console.log('🔄 Auto-login:', this.currentUser.email);
       
-      // Mostra loading
       this.showLoading('Conectando...');
       
-      // Valida com API
       const response = await API.validateUser(this.currentUser.email);
       
       if (response.success) {
         this.isAuthenticated = true;
+        this.spreadsheetId = response.data.spreadsheetId;
         this.hideLoginScreen();
         this.showMainApp();
-        
         console.log('✅ Auto-login bem-sucedido');
       } else {
         throw new Error(response.error || 'Falha na validação');
@@ -88,25 +64,12 @@ const AuthSystem = {
       
     } catch (error) {
       console.error('❌ Erro no auto-login:', error);
-      
-      // Limpa dados corrompidos
       this.logout(false);
-      
-      // Mostra tela de login
       this.showLoginScreen();
-      
-      // Notifica usuário
-      if (typeof UICore !== 'undefined') {
-        UICore.showError('Sessão expirada. Faça login novamente.');
-      } else {
-        alert('Sessão expirada. Faça login novamente.');
-      }
+      this.showError('Sessão expirada. Faça login novamente.');
     }
   },
   
-  /**
-   * Login manual
-   */
   async login(email) {
     if (!email || !this.validateEmail(email)) {
       this.showError('Email inválido!');
@@ -121,13 +84,13 @@ const AuthSystem = {
       if (response.success) {
         this.currentUser = {
           email: email,
-          name: response.data?.name || email.split('@')[0],
+          name: email.split('@')[0],
           loginAt: new Date().toISOString()
         };
         
         this.isAuthenticated = true;
+        this.spreadsheetId = response.data.spreadsheetId;
         
-        // Salva no localStorage
         localStorage.setItem('auth_user', JSON.stringify(this.currentUser));
         
         this.hideLoginScreen();
@@ -137,7 +100,7 @@ const AuthSystem = {
         return true;
         
       } else {
-        throw new Error(response.error || 'Email não autorizado');
+        throw new Error(response.error || 'Erro ao validar email');
       }
       
     } catch (error) {
@@ -147,17 +110,11 @@ const AuthSystem = {
     }
   },
   
-  // ========================================
-  // LOGOUT
-  // ========================================
-  
-  /**
-   * Logout
-   */
   logout(showMessage = true) {
     try {
       this.currentUser = null;
       this.isAuthenticated = false;
+      this.spreadsheetId = null;
       
       localStorage.removeItem('auth_user');
       
@@ -165,9 +122,13 @@ const AuthSystem = {
       this.hideMainApp();
       
       if (showMessage) {
-        if (typeof UICore !== 'undefined') {
-          UICore.showNotification('Logout realizado', 'success');
-        }
+        setTimeout(() => {
+          const status = document.getElementById('login-status');
+          if (status) {
+            status.textContent = 'Logout realizado com sucesso';
+            status.style.color = '#00cc44';
+          }
+        }, 100);
       }
       
       console.log('👋 Logout realizado');
@@ -177,34 +138,31 @@ const AuthSystem = {
     }
   },
   
-  /**
-   * Troca de conta
-   */
   async switchAccount() {
-    const confirmed = confirm('Deseja trocar de conta?\n\nVocê será desconectado e precisará fazer login novamente.');
+    const confirmed = confirm('Deseja trocar de conta?\n\nVocê será desconectado.');
     
     if (confirmed) {
       this.logout(false);
+      setTimeout(() => {
+        const emailInput = document.getElementById('email-input');
+        if (emailInput) emailInput.focus();
+      }, 500);
     }
   },
   
-  // ========================================
-  // UI
-  // ========================================
+  // UI METHODS
   
-  /**
-   * Mostra tela de login
-   */
   showLoginScreen() {
     const loginScreen = document.getElementById('login-screen');
     if (loginScreen) {
       loginScreen.classList.add('active');
+      setTimeout(() => {
+        const emailInput = document.getElementById('email-input');
+        if (emailInput) emailInput.focus();
+      }, 300);
     }
   },
   
-  /**
-   * Esconde tela de login
-   */
   hideLoginScreen() {
     const loginScreen = document.getElementById('login-screen');
     if (loginScreen) {
@@ -212,27 +170,20 @@ const AuthSystem = {
     }
   },
   
-  /**
-   * Mostra app principal
-   */
   showMainApp() {
     const mainApp = document.getElementById('main-app');
     if (mainApp) {
       mainApp.style.display = 'block';
     }
     
-    // Atualiza info do usuário
     this.updateUserInfo();
     
     // Inicializa app
     if (typeof App !== 'undefined' && App.init) {
-      App.init();
+      setTimeout(() => App.init(), 100);
     }
   },
   
-  /**
-   * Esconde app principal
-   */
   hideMainApp() {
     const mainApp = document.getElementById('main-app');
     if (mainApp) {
@@ -240,78 +191,78 @@ const AuthSystem = {
     }
   },
   
-  /**
-   * Atualiza informações do usuário na UI
-   */
   updateUserInfo() {
     if (!this.currentUser) return;
     
-    const userNameEl = document.getElementById('user-name');
-    const userEmailEl = document.getElementById('user-email');
+    const userInfoDisplay = document.getElementById('user-info-display');
+    const userAvatar = document.getElementById('user-avatar');
+    const userName = document.getElementById('user-name');
+    const userEmail = document.getElementById('user-email');
     
-    if (userNameEl) {
-      userNameEl.textContent = this.currentUser.name || 'Usuário';
-    }
-    
-    if (userEmailEl) {
-      userEmailEl.textContent = this.currentUser.email;
+    if (userInfoDisplay) userInfoDisplay.classList.add('active');
+    if (userName) userName.textContent = this.currentUser.name || 'Usuário';
+    if (userEmail) userEmail.textContent = this.currentUser.email;
+    if (userAvatar) {
+      const initial = (this.currentUser.name || this.currentUser.email || 'U').charAt(0).toUpperCase();
+      userAvatar.textContent = initial;
     }
   },
   
-  /**
-   * Mostra loading
-   */
   showLoading(message = 'Carregando...') {
     const loginForm = document.getElementById('login-form');
+    const loginBtn = document.getElementById('btn-login');
+    const statusEl = document.getElementById('login-status');
+    
     if (loginForm) {
-      loginForm.style.opacity = '0.5';
+      loginForm.style.opacity = '0.6';
       loginForm.style.pointerEvents = 'none';
     }
     
-    const statusEl = document.getElementById('login-status');
+    if (loginBtn) {
+      loginBtn.classList.add('loading');
+      loginBtn.innerHTML = message + ' <span class="spinner"></span>';
+    }
+    
     if (statusEl) {
-      statusEl.textContent = message;
-      statusEl.style.color = 'var(--accent-primary)';
+      statusEl.textContent = '';
+      statusEl.className = '';
     }
   },
   
-  /**
-   * Mostra erro
-   */
   showError(message) {
     const loginForm = document.getElementById('login-form');
+    const loginBtn = document.getElementById('btn-login');
+    const statusEl = document.getElementById('login-status');
+    
     if (loginForm) {
       loginForm.style.opacity = '1';
       loginForm.style.pointerEvents = 'auto';
     }
     
-    const statusEl = document.getElementById('login-status');
-    if (statusEl) {
-      statusEl.textContent = message;
-      statusEl.style.color = 'var(--accent-danger)';
+    if (loginBtn) {
+      loginBtn.classList.remove('loading');
+      loginBtn.textContent = 'ACESSAR SISTEMA';
     }
     
-    // Limpa depois de 5 segundos
+    if (statusEl) {
+      statusEl.textContent = message;
+      statusEl.className = 'error';
+    }
+    
     setTimeout(() => {
-      if (statusEl) statusEl.textContent = '';
+      if (statusEl) {
+        statusEl.textContent = '';
+        statusEl.className = '';
+      }
     }, 5000);
   },
   
-  // ========================================
-  // EVENT LISTENERS
-  // ========================================
-  
-  /**
-   * Anexa listeners de login
-   */
   attachLoginListeners() {
-    // Botão de login
     const loginBtn = document.getElementById('btn-login');
     if (loginBtn) {
       loginBtn.addEventListener('click', () => this.handleLoginClick());
     }
     
-    // Enter no input
     const emailInput = document.getElementById('email-input');
     if (emailInput) {
       emailInput.addEventListener('keypress', (e) => {
@@ -320,17 +271,8 @@ const AuthSystem = {
         }
       });
     }
-    
-    // Botão de logout (se existir)
-    const logoutBtn = document.getElementById('btn-logout');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', () => this.logout());
-    }
   },
   
-  /**
-   * Handler do clique no login
-   */
   async handleLoginClick() {
     const emailInput = document.getElementById('email-input');
     if (!emailInput) return;
@@ -339,45 +281,23 @@ const AuthSystem = {
     await this.login(email);
   },
   
-  // ========================================
-  // VALIDAÇÃO
-  // ========================================
-  
-  /**
-   * Valida email
-   */
   validateEmail(email) {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
   },
   
-  // ========================================
-  // GETTERS
-  // ========================================
-  
-  /**
-   * Retorna se está autenticado
-   */
   get authenticated() {
     return this.isAuthenticated && this.currentUser !== null;
   },
   
-  /**
-   * Retorna email do usuário atual
-   */
   get userEmail() {
     return this.currentUser?.email || null;
   },
   
-  /**
-   * Retorna nome do usuário atual
-   */
   get userName() {
     return this.currentUser?.name || null;
   }
 };
 
-// Exporta globalmente
 window.AuthSystem = AuthSystem;
-
-console.log('🔐 Auth System v3.1.0 carregado');
+console.log('🔐 Auth System v3.1.1 carregado');
