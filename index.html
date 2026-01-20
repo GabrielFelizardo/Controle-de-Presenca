@@ -10,302 +10,503 @@
     <link rel="stylesheet" href="css/responsive-table-fix.css">
     <link rel="stylesheet" href="css/templates-styles.css">
     <link rel="stylesheet" href="css/features.css">
+    
+    <!-- CSS adicional para Login -->
+    <style>
+        /* ========================================
+           LOGIN SCREEN
+           ======================================== */
+        .login-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-4);
+        }
+
+        .login-screen.active {
+            display: flex;
+        }
+
+        .login-container {
+            background: var(--white);
+            padding: var(--space-6);
+            max-width: 500px;
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: loginSlideIn 0.5s ease-out;
+        }
+
+        @keyframes loginSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: var(--space-5);
+            padding-bottom: var(--space-3);
+            border-bottom: 3px solid var(--black);
+        }
+
+        .login-header .heading-1 {
+            font-size: clamp(28px, 5vw, 42px);
+            margin-bottom: var(--space-2);
+        }
+
+        .login-form {
+            margin-bottom: var(--space-4);
+        }
+
+        .login-info-box {
+            margin-top: var(--space-4);
+            padding: var(--space-3);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+        }
+
+        .login-info-box p {
+            font-size: 13px;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        #login-status {
+            margin-top: var(--space-2);
+            text-align: center;
+            font-size: 13px;
+            font-weight: var(--font-weight-bold);
+            min-height: 20px;
+        }
+
+        /* Main app escondido até login */
+        #main-app {
+            display: none;
+        }
+
+        /* Loading spinner */
+        .login-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* User info no header (após login) */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            margin-top: var(--space-2);
+        }
+
+        .user-info-avatar {
+            width: 32px;
+            height: 32px;
+            background: var(--accent-primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: var(--font-weight-bold);
+            font-size: 14px;
+        }
+
+        .user-info-details {
+            font-size: 12px;
+        }
+
+        .user-info-name {
+            font-weight: var(--font-weight-bold);
+            color: var(--gray-900);
+        }
+
+        .user-info-email {
+            color: var(--gray-600);
+        }
+    </style>
 </head>
 <body>
-    <!-- MENU BAR -->
-    <nav class="menu-bar">
-        <div class="menu-container">
-            <div class="menu-items">
-                <!-- ARQUIVO -->
-                <div class="menu-item">
-                    <button class="menu-button" data-menu="arquivo">📁 Arquivo</button>
-                    <div class="dropdown">
-                        <button class="dropdown-item" data-action="new-event">Novo Evento</button>
-                        <button class="dropdown-item" data-action="save">Salvar <span class="shortcut">Ctrl+S</span></button>
-                        <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" data-action="export-pdf">Exportar PDF</button>
-                        <button class="dropdown-item" data-action="export-txt">Exportar TXT</button>
-                        <button class="dropdown-item" data-action="export-csv">Exportar CSV</button>
-                        <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" data-action="print">Imprimir <span class="shortcut">Ctrl+P</span></button>
-                        <button class="dropdown-item" data-action="duplicate-event">Duplicar Evento</button>
-                        <div class="dropdown-divider"></div>
-                        <button class="dropdown-item danger" data-action="clear-all">Limpar Tudo</button>
-                    </div>
-                </div>
-
-                <!-- EDITAR -->
-                <div class="menu-item">
-                    <button class="menu-button" data-menu="editar">✏️ Editar</button>
-                    <div class="dropdown">
-                        <button class="dropdown-item" data-action="quick-add">Adicionar Rápido</button>
-                        <button class="dropdown-item" data-action="bulk-edit">Editar em Lote</button>
-                        <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" data-action="select-all">Selecionar Todos</button>
-                        <button class="dropdown-item" data-action="confirm-all">Confirmar Todos</button>
-                        <button class="dropdown-item" data-action="reject-all">Recusar Todos</button>
-                        <button class="dropdown-item" data-action="reset-all">Resetar Status</button>
-                    </div>
-                </div>
-
-                <!-- VISUALIZAR -->
-                <div class="menu-item">
-                    <button class="menu-button" data-menu="visualizar">👁 Visualizar</button>
-                    <div class="dropdown">
-                        <button class="dropdown-item" data-action="toggle-compact">Modo Compacto</button>
-                        <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" data-action="filter-all">Mostrar: Todos</button>
-                        <button class="dropdown-item" data-action="filter-yes">Mostrar: Confirmados</button>
-                        <button class="dropdown-item" data-action="filter-no">Mostrar: Recusas</button>
-                        <button class="dropdown-item" data-action="filter-pending">Mostrar: Pendentes</button>
-                        <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" data-action="sort-name">Ordenar: Nome A-Z</button>
-                        <button class="dropdown-item" data-action="sort-status">Ordenar: Status</button>
-                    </div>
-                </div>
-
-                <!-- FERRAMENTAS -->
-                <div class="menu-item">
-                    <button class="menu-button" data-menu="ferramentas">🔧 Ferramentas</button>
-                    <div class="dropdown">
-                        <button class="dropdown-item" data-action="detailed-stats">Estatísticas Detalhadas</button>
-                        <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" onclick="window.open('https://drive.google.com')">
-                            📊 Abrir Minha Planilha
-                        </button>
-                        <button class="dropdown-item" onclick="AuthSystem.switchAccount()">
-                            🔄 Trocar de Conta
-                        </button>
-                        <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" data-action="backup">Backup (Download)</button>
-                        <button class="dropdown-item" data-action="restore">Restaurar Backup</button>
-                    </div>
-                </div>
-
-                <!-- AJUDA -->
-                <div class="menu-item">
-                    <button class="menu-button" data-menu="ajuda">❓ Ajuda</button>
-                    <div class="dropdown">
-                        <button class="dropdown-item" data-action="help">Como Usar</button>
-                        <button class="dropdown-item" data-action="shortcuts">Atalhos de Teclado</button>
-                        <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" data-action="about">Sobre o Sistema</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container">
-        <header class="header">
-            <div>
+    <!-- ========================================
+         TELA DE LOGIN
+         ======================================== -->
+    <div id="login-screen" class="login-screen">
+        <div class="login-container">
+            <div class="login-header">
                 <h1 class="heading-1">CONTROLE DE PRESENÇA</h1>
                 <p class="label">Sistema de Gestão de Eventos v3.1</p>
-                <span class="auto-save" id="auto-save">✓ SINCRONIZADO</span>
             </div>
-        </header>
+            
+            <div id="login-form" class="login-form">
+                <div class="form-group">
+                    <label class="label">DIGITE SEU EMAIL</label>
+                    <input 
+                        type="email" 
+                        id="email-input" 
+                        class="input" 
+                        placeholder="seuemail@gmail.com"
+                        autocomplete="email"
+                        autofocus
+                        required
+                    >
+                </div>
+                
+                <button id="btn-login" class="btn btn-primary" style="width: 100%;">
+                    ACESSAR SISTEMA
+                </button>
+                
+                <div id="login-status"></div>
+            </div>
+            
+            <div class="login-info-box">
+                <p><strong>💡 Como funciona:</strong></p>
+                <p style="margin-top: 8px;">
+                    Digite seu email para acessar seus eventos. Seus dados ficam salvos 
+                    no Google Drive e você pode acessar de qualquer computador!
+                </p>
+            </div>
 
-        <div class="tabs-wrapper">
-            <div class="tabs" id="tabs-container"></div>
+            <div style="margin-top: var(--space-3); text-align: center;">
+                <p style="font-size: 11px; color: var(--gray-600);">
+                    Primeira vez? Digite qualquer email válido para começar.
+                </p>
+            </div>
         </div>
-
-        <div id="event-content"></div>
     </div>
 
     <!-- ========================================
-         MODALS
+         APP PRINCIPAL
          ======================================== -->
+    <div id="main-app">
+        <!-- MENU BAR -->
+        <nav class="menu-bar">
+            <div class="menu-container">
+                <div class="menu-items">
+                    <!-- ARQUIVO -->
+                    <div class="menu-item">
+                        <button class="menu-button" data-menu="arquivo">📁 Arquivo</button>
+                        <div class="dropdown">
+                            <button class="dropdown-item" data-action="new-event">Novo Evento</button>
+                            <button class="dropdown-item" data-action="save">Salvar <span class="shortcut">Ctrl+S</span></button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item" data-action="export-pdf">Exportar PDF</button>
+                            <button class="dropdown-item" data-action="export-txt">Exportar TXT</button>
+                            <button class="dropdown-item" data-action="export-csv">Exportar CSV</button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item" data-action="print">Imprimir <span class="shortcut">Ctrl+P</span></button>
+                            <button class="dropdown-item" data-action="duplicate-event">Duplicar Evento</button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item danger" data-action="clear-all">Limpar Tudo</button>
+                        </div>
+                    </div>
 
-    <!-- MODAL: CONFIRMAÇÃO -->
-    <div class="modal" id="confirm-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title" id="confirm-title">CONFIRMAR</h2>
-            </div>
-            <p id="confirm-message"></p>
-            <div class="modal-actions">
-                <button class="btn" data-modal-action="cancel">CANCELAR</button>
-                <button class="btn btn-danger" id="confirm-action">CONFIRMAR</button>
-            </div>
-        </div>
-    </div>
+                    <!-- EDITAR -->
+                    <div class="menu-item">
+                        <button class="menu-button" data-menu="editar">✏️ Editar</button>
+                        <div class="dropdown">
+                            <button class="dropdown-item" data-action="quick-add">Adicionar Rápido</button>
+                            <button class="dropdown-item" data-action="bulk-edit">Editar em Lote</button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item" data-action="select-all">Selecionar Todos</button>
+                            <button class="dropdown-item" data-action="confirm-all">Confirmar Todos</button>
+                            <button class="dropdown-item" data-action="reject-all">Recusar Todos</button>
+                            <button class="dropdown-item" data-action="reset-all">Resetar Status</button>
+                        </div>
+                    </div>
 
-    <!-- MODAL: EDITAR CONVIDADO -->
-    <div class="modal" id="edit-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">EDITAR CONVIDADO</h2>
-            </div>
-            <div id="edit-fields"></div>
-            <div class="modal-actions">
-                <button class="btn" data-modal-action="cancel">CANCELAR</button>
-                <button class="btn btn-success" data-modal-action="save-edit">SALVAR</button>
-            </div>
-        </div>
-    </div>
+                    <!-- VISUALIZAR -->
+                    <div class="menu-item">
+                        <button class="menu-button" data-menu="visualizar">👁 Visualizar</button>
+                        <div class="dropdown">
+                            <button class="dropdown-item" data-action="toggle-compact">Modo Compacto</button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item" data-action="filter-all">Mostrar: Todos</button>
+                            <button class="dropdown-item" data-action="filter-yes">Mostrar: Confirmados</button>
+                            <button class="dropdown-item" data-action="filter-no">Mostrar: Recusas</button>
+                            <button class="dropdown-item" data-action="filter-pending">Mostrar: Pendentes</button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item" data-action="sort-name">Ordenar: Nome A-Z</button>
+                            <button class="dropdown-item" data-action="sort-status">Ordenar: Status</button>
+                        </div>
+                    </div>
 
-    <!-- MODAL: NOVO EVENTO -->
-    <div class="modal" id="new-event-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">NOVO EVENTO</h2>
-            </div>
-            <div class="form-group">
-                <label class="label">NOME DO EVENTO</label>
-                <input type="text" class="input" id="new-event-name" placeholder="Ex: Aniversário do João">
-            </div>
-            <div class="form-group">
-                <label class="label">DATA DO EVENTO</label>
-                <input type="date" class="input" id="new-event-date">
-            </div>
-            <div class="modal-actions">
-                <button class="btn" data-modal-action="cancel">CANCELAR</button>
-                <button class="btn btn-success" data-modal-action="create-event">CRIAR</button>
-            </div>
-        </div>
-    </div>
+                    <!-- FERRAMENTAS -->
+                    <div class="menu-item">
+                        <button class="menu-button" data-menu="ferramentas">🔧 Ferramentas</button>
+                        <div class="dropdown">
+                            <button class="dropdown-item" data-action="detailed-stats">Estatísticas Detalhadas</button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item" onclick="window.open('https://drive.google.com')">
+                                📊 Abrir Minha Planilha
+                            </button>
+                            <button class="dropdown-item" onclick="AuthSystem.switchAccount()">
+                                🔄 Trocar de Conta
+                            </button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item" data-action="backup">Backup (Download)</button>
+                            <button class="dropdown-item" data-action="restore">Restaurar Backup</button>
+                        </div>
+                    </div>
 
-    <!-- MODAL: ADICIONAR RÁPIDO -->
-    <div class="modal" id="quick-add-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">ADICIONAR RÁPIDO</h2>
-            </div>
-            <div id="quick-add-fields"></div>
-            <div class="modal-actions">
-                <button class="btn" data-modal-action="cancel">CANCELAR</button>
-                <button class="btn btn-success" data-modal-action="save-quick-add">ADICIONAR</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: EDITAR EM LOTE -->
-    <div class="modal" id="bulk-edit-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">EDITAR EM LOTE</h2>
-            </div>
-            <p>Aplique uma ação para todos os convidados selecionados:</p>
-            <div style="margin: var(--space-3) 0;">
-                <button class="btn btn-success" data-bulk-action="yes" style="width: 100%; margin-bottom: var(--space-2);">✓ CONFIRMAR SELECIONADOS</button>
-                <button class="btn btn-danger" data-bulk-action="no" style="width: 100%; margin-bottom: var(--space-2);">✗ RECUSAR SELECIONADOS</button>
-                <button class="btn" data-bulk-action="reset" style="width: 100%;">⟲ RESETAR SELECIONADOS</button>
-            </div>
-            <div class="modal-actions">
-                <button class="btn" data-modal-action="cancel" style="grid-column: 1 / -1;">FECHAR</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: ESTATÍSTICAS -->
-    <div class="modal" id="stats-modal">
-        <div class="modal-content large">
-            <div class="modal-header">
-                <h2 class="modal-title">📊 ESTATÍSTICAS DETALHADAS</h2>
-            </div>
-            <div id="stats-content"></div>
-            <div class="modal-actions">
-                <button class="btn btn-primary" data-modal-action="cancel" style="grid-column: 1 / -1;">FECHAR</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: RESTAURAR BACKUP -->
-    <div class="modal" id="restore-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">RESTAURAR BACKUP</h2>
-            </div>
-            <div class="form-group">
-                <label class="label">SELECIONE O ARQUIVO</label>
-                <input type="file" id="restore-file" accept=".json" class="input">
-                <div class="help-note">
-                    <p class="body-text-small">Selecione um arquivo de backup (.json) gerado anteriormente.</p>
+                    <!-- AJUDA -->
+                    <div class="menu-item">
+                        <button class="menu-button" data-menu="ajuda">❓ Ajuda</button>
+                        <div class="dropdown">
+                            <button class="dropdown-item" data-action="help">Como Usar</button>
+                            <button class="dropdown-item" data-action="shortcuts">Atalhos de Teclado</button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item" data-action="about">Sobre o Sistema</button>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="modal-actions">
-                <button class="btn" data-modal-action="cancel">CANCELAR</button>
-                <button class="btn btn-success" data-modal-action="restore-backup">RESTAURAR</button>
+        </nav>
+
+        <div class="container">
+            <header class="header">
+                <div>
+                    <h1 class="heading-1">CONTROLE DE PRESENÇA</h1>
+                    <p class="label">Sistema de Gestão de Eventos v3.1</p>
+                    
+                    <!-- User info (após login) -->
+                    <div class="user-info" style="display: none;" id="user-info-display">
+                        <div class="user-info-avatar" id="user-avatar">U</div>
+                        <div class="user-info-details">
+                            <div class="user-info-name" id="user-name">Usuário</div>
+                            <div class="user-info-email" id="user-email">email@example.com</div>
+                        </div>
+                    </div>
+                    
+                    <span class="auto-save" id="auto-save">✓ SINCRONIZADO</span>
+                </div>
+            </header>
+
+            <div class="tabs-wrapper">
+                <div class="tabs" id="tabs-container"></div>
+            </div>
+
+            <div id="event-content"></div>
+        </div>
+
+        <!-- ========================================
+             MODALS
+             ======================================== -->
+
+        <!-- MODAL: CONFIRMAÇÃO -->
+        <div class="modal" id="confirm-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="confirm-title">CONFIRMAR</h2>
+                </div>
+                <p id="confirm-message"></p>
+                <div class="modal-actions">
+                    <button class="btn" data-modal-action="cancel">CANCELAR</button>
+                    <button class="btn btn-danger" id="confirm-action">CONFIRMAR</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- MODAL: AJUDA -->
-    <div class="modal" id="help-modal">
-        <div class="modal-content large">
-            <div class="modal-header">
-                <h2 class="modal-title">COMO USAR</h2>
-            </div>
-            <div style="padding: var(--space-4); line-height: 1.8;">
-                <h3 style="margin-bottom: 1rem;">SISTEMA v3.1 - BASEADO EM EMAIL</h3>
-                <p><strong>1. Login:</strong> Digite seu email para acessar seus eventos</p>
-                <p><strong>2. Dados:</strong> Tudo fica salvo na sua planilha do Google Drive</p>
-                <p><strong>3. Multi-acesso:</strong> Use de qualquer computador com seu email</p>
-                <p><strong>4. Sincronização:</strong> Eventos e convidados salvam automaticamente</p>
-                
-                <h3 style="margin: 2rem 0 1rem;">CRIAR EVENTOS</h3>
-                <p>• Clique "+ NOVO" para criar evento</p>
-                <p>• Sistema cria uma ABA na planilha automaticamente</p>
-                <p>• Cada evento = 1 aba na sua planilha</p>
-                
-                <h3 style="margin: 2rem 0 1rem;">ADICIONAR CONVIDADOS</h3>
-                <p>• Clique "Adicionar Manualmente"</p>
-                <p>• Sistema adiciona LINHA na aba do evento</p>
-                <p>• Cada convidado = 1 linha na planilha</p>
-                
-                <h3 style="margin: 2rem 0 1rem;">VER SUA PLANILHA</h3>
-                <p>• Menu Ferramentas → Abrir Minha Planilha</p>
-                <p>• Ou acesse drive.google.com</p>
-                <p>• Procure: "Sistema Presença - seuemail@gmail.com"</p>
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-primary" data-modal-action="cancel" style="grid-column: 1 / -1;">ENTENDI</button>
+        <!-- MODAL: EDITAR CONVIDADO -->
+        <div class="modal" id="edit-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">EDITAR CONVIDADO</h2>
+                </div>
+                <div id="edit-fields"></div>
+                <div class="modal-actions">
+                    <button class="btn" data-modal-action="cancel">CANCELAR</button>
+                    <button class="btn btn-success" data-modal-action="save-edit">SALVAR</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- MODAL: ATALHOS -->
-    <div class="modal" id="shortcuts-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">ATALHOS DE TECLADO</h2>
-            </div>
-            <div style="padding: var(--space-4); display: grid; gap: var(--space-2);">
-                <div><strong>Ctrl + S</strong> - Salvar</div>
-                <div><strong>Ctrl + P</strong> - Imprimir</div>
-                <div><strong>Ctrl + F</strong> - Focar na busca</div>
-                <div><strong>Esc</strong> - Fechar modal</div>
-                <div><strong>Clique no ✏️</strong> - Editar nome da aba</div>
-                <div><strong>Enter no login</strong> - Acessar sistema</div>
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-primary" data-modal-action="cancel" style="grid-column: 1 / -1;">ENTENDI</button>
+        <!-- MODAL: NOVO EVENTO -->
+        <div class="modal" id="new-event-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">NOVO EVENTO</h2>
+                </div>
+                <div class="form-group">
+                    <label class="label">NOME DO EVENTO</label>
+                    <input type="text" class="input" id="new-event-name" placeholder="Ex: Aniversário do João">
+                </div>
+                <div class="form-group">
+                    <label class="label">DATA DO EVENTO</label>
+                    <input type="date" class="input" id="new-event-date">
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" data-modal-action="cancel">CANCELAR</button>
+                    <button class="btn btn-success" data-modal-action="create-event">CRIAR</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- MODAL: SOBRE -->
-    <div class="modal" id="about-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">SOBRE O SISTEMA</h2>
+        <!-- MODAL: ADICIONAR RÁPIDO -->
+        <div class="modal" id="quick-add-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">ADICIONAR RÁPIDO</h2>
+                </div>
+                <div id="quick-add-fields"></div>
+                <div class="modal-actions">
+                    <button class="btn" data-modal-action="cancel">CANCELAR</button>
+                    <button class="btn btn-success" data-modal-action="save-quick-add">ADICIONAR</button>
+                </div>
             </div>
-            <div style="line-height: 1.8; text-align: center; padding: var(--space-4);">
-                <p style="font-size: 48px; margin-bottom: 1rem;">📋</p>
-                <h3>SISTEMA DE CONTROLE DE PRESENÇA</h3>
-                <p style="margin: 1rem 0; color: var(--gray-600);">Versão 3.1</p>
-                <p>Sistema completo para gerenciar listas de convidados em eventos.</p>
-                <p style="margin-top: 2rem;">Baseado em Google Sheets com login por email.</p>
-                <p style="margin-top: 1rem; font-size: 14px;">
-                    Seus dados ficam salvos na sua planilha do Google Drive.<br>
-                    Acesse de qualquer computador usando seu email.
-                </p>
-                <p style="margin-top: 2rem; font-size: 14px; color: var(--gray-600);">
-                    Desenvolvido por Gabriel Felizardo
-                </p>
+        </div>
+
+        <!-- MODAL: EDITAR EM LOTE -->
+        <div class="modal" id="bulk-edit-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">EDITAR EM LOTE</h2>
+                </div>
+                <p>Aplique uma ação para todos os convidados selecionados:</p>
+                <div style="margin: var(--space-3) 0;">
+                    <button class="btn btn-success" data-bulk-action="yes" style="width: 100%; margin-bottom: var(--space-2);">✓ CONFIRMAR SELECIONADOS</button>
+                    <button class="btn btn-danger" data-bulk-action="no" style="width: 100%; margin-bottom: var(--space-2);">✗ RECUSAR SELECIONADOS</button>
+                    <button class="btn" data-bulk-action="reset" style="width: 100%;">⟲ RESETAR SELECIONADOS</button>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" data-modal-action="cancel" style="grid-column: 1 / -1;">FECHAR</button>
+                </div>
             </div>
-            <div class="modal-actions">
-                <button class="btn btn-primary" data-modal-action="cancel" style="grid-column: 1 / -1;">FECHAR</button>
+        </div>
+
+        <!-- MODAL: ESTATÍSTICAS -->
+        <div class="modal" id="stats-modal">
+            <div class="modal-content large">
+                <div class="modal-header">
+                    <h2 class="modal-title">📊 ESTATÍSTICAS DETALHADAS</h2>
+                </div>
+                <div id="stats-content"></div>
+                <div class="modal-actions">
+                    <button class="btn btn-primary" data-modal-action="cancel" style="grid-column: 1 / -1;">FECHAR</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: RESTAURAR BACKUP -->
+        <div class="modal" id="restore-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">RESTAURAR BACKUP</h2>
+                </div>
+                <div class="form-group">
+                    <label class="label">SELECIONE O ARQUIVO</label>
+                    <input type="file" id="restore-file" accept=".json" class="input">
+                    <div class="help-note">
+                        <p class="body-text-small">Selecione um arquivo de backup (.json) gerado anteriormente.</p>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" data-modal-action="cancel">CANCELAR</button>
+                    <button class="btn btn-success" data-modal-action="restore-backup">RESTAURAR</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: AJUDA -->
+        <div class="modal" id="help-modal">
+            <div class="modal-content large">
+                <div class="modal-header">
+                    <h2 class="modal-title">COMO USAR</h2>
+                </div>
+                <div style="padding: var(--space-4); line-height: 1.8;">
+                    <h3 style="margin-bottom: 1rem;">SISTEMA v3.1 - BASEADO EM EMAIL</h3>
+                    <p><strong>1. Login:</strong> Digite seu email para acessar seus eventos</p>
+                    <p><strong>2. Dados:</strong> Tudo fica salvo na sua planilha do Google Drive</p>
+                    <p><strong>3. Multi-acesso:</strong> Use de qualquer computador com seu email</p>
+                    <p><strong>4. Sincronização:</strong> Eventos e convidados salvam automaticamente</p>
+                    
+                    <h3 style="margin: 2rem 0 1rem;">CRIAR EVENTOS</h3>
+                    <p>• Clique "+ NOVO" para criar evento</p>
+                    <p>• Sistema cria uma ABA na planilha automaticamente</p>
+                    <p>• Cada evento = 1 aba na sua planilha</p>
+                    
+                    <h3 style="margin: 2rem 0 1rem;">ADICIONAR CONVIDADOS</h3>
+                    <p>• Clique "Adicionar Manualmente"</p>
+                    <p>• Sistema adiciona LINHA na aba do evento</p>
+                    <p>• Cada convidado = 1 linha na planilha</p>
+                    
+                    <h3 style="margin: 2rem 0 1rem;">VER SUA PLANILHA</h3>
+                    <p>• Menu Ferramentas → Abrir Minha Planilha</p>
+                    <p>• Ou acesse drive.google.com</p>
+                    <p>• Procure: "Sistema Presença - seuemail@gmail.com"</p>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-primary" data-modal-action="cancel" style="grid-column: 1 / -1;">ENTENDI</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: ATALHOS -->
+        <div class="modal" id="shortcuts-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">ATALHOS DE TECLADO</h2>
+                </div>
+                <div style="padding: var(--space-4); display: grid; gap: var(--space-2);">
+                    <div><strong>Ctrl + S</strong> - Salvar</div>
+                    <div><strong>Ctrl + P</strong> - Imprimir</div>
+                    <div><strong>Ctrl + F</strong> - Focar na busca</div>
+                    <div><strong>Esc</strong> - Fechar modal</div>
+                    <div><strong>Clique no ✏️</strong> - Editar nome da aba</div>
+                    <div><strong>Enter no login</strong> - Acessar sistema</div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-primary" data-modal-action="cancel" style="grid-column: 1 / -1;">ENTENDI</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: SOBRE -->
+        <div class="modal" id="about-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">SOBRE O SISTEMA</h2>
+                </div>
+                <div style="line-height: 1.8; text-align: center; padding: var(--space-4);">
+                    <p style="font-size: 48px; margin-bottom: 1rem;">📋</p>
+                    <h3>SISTEMA DE CONTROLE DE PRESENÇA</h3>
+                    <p style="margin: 1rem 0; color: var(--gray-600);">Versão 3.1</p>
+                    <p>Sistema completo para gerenciar listas de convidados em eventos.</p>
+                    <p style="margin-top: 2rem;">Baseado em Google Sheets com login por email.</p>
+                    <p style="margin-top: 1rem; font-size: 14px;">
+                        Seus dados ficam salvos na sua planilha do Google Drive.<br>
+                        Acesse de qualquer computador usando seu email.
+                    </p>
+                    <p style="margin-top: 2rem; font-size: 14px; color: var(--gray-600);">
+                        Desenvolvido por Gabriel Felizardo
+                    </p>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-primary" data-modal-action="cancel" style="grid-column: 1 / -1;">FECHAR</button>
+                </div>
             </div>
         </div>
     </div>
@@ -345,13 +546,137 @@
     <script src="js/usability-fixes.js"></script>
     
     <!-- 6. ERROR HANDLING -->
-    <script src="js/error-handler.js"></script>
-
-    <!-- Error Handling -->
     <script src="js/error-boundary.js"></script>
     <script src="js/error-handler.js"></script>
     
     <!-- 7. APP INIT (Inicialização - SEMPRE POR ÚLTIMO) -->
     <script src="js/app.js"></script>
+
+    <!-- Script adicional para melhorar UX do login -->
+    <script>
+        // Melhora visual do user info após login
+        if (typeof AuthSystem !== 'undefined') {
+            const originalUpdateUserInfo = AuthSystem.updateUserInfo;
+            AuthSystem.updateUserInfo = function() {
+                if (!this.currentUser) return;
+                
+                // Atualiza display
+                const userInfoDisplay = document.getElementById('user-info-display');
+                const userAvatar = document.getElementById('user-avatar');
+                const userName = document.getElementById('user-name');
+                const userEmail = document.getElementById('user-email');
+                
+                if (userInfoDisplay) userInfoDisplay.style.display = 'flex';
+                if (userName) userName.textContent = this.currentUser.name || 'Usuário';
+                if (userEmail) userEmail.textContent = this.currentUser.email;
+                if (userAvatar) {
+                    const initial = (this.currentUser.name || this.currentUser.email || 'U').charAt(0).toUpperCase();
+                    userAvatar.textContent = initial;
+                }
+                
+                // Chama função original se existir
+                if (originalUpdateUserInfo) {
+                    originalUpdateUserInfo.call(this);
+                }
+            };
+        }
+
+        // Handler para criar evento via modal
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-modal-action="create-event"]');
+            if (!btn) return;
+            
+            const nameInput = document.getElementById('new-event-name');
+            const dateInput = document.getElementById('new-event-date');
+            
+            if (!nameInput || !nameInput.value.trim()) {
+                alert('Digite o nome do evento!');
+                return;
+            }
+            
+            const name = nameInput.value.trim();
+            const date = dateInput ? dateInput.value : '';
+            
+            // Cria evento
+            if (typeof State !== 'undefined') {
+                State.addEvent(name, date);
+                State.currentEventId = State.events[State.events.length - 1].id;
+                
+                if (typeof Storage !== 'undefined') Storage.save();
+                if (typeof UICore !== 'undefined') {
+                    UICore.renderTabs();
+                    UICore.render();
+                    UICore.closeModal('new-event-modal');
+                    UICore.showNotification('Evento criado!', 'success');
+                }
+                
+                // Limpa inputs
+                nameInput.value = '';
+                if (dateInput) dateInput.value = '';
+            }
+        });
+
+        // Handler para cancelar modais
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-modal-action="cancel"]');
+            if (!btn) return;
+            
+            const modal = btn.closest('.modal');
+            if (modal && typeof UICore !== 'undefined') {
+                UICore.closeModal(modal.id);
+            }
+        });
+
+        // Fecha modal ao clicar no fundo
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                if (typeof UICore !== 'undefined') {
+                    UICore.closeModal(e.target.id);
+                }
+            }
+        });
+
+        // Menu dropdowns
+        document.addEventListener('click', (e) => {
+            const menuBtn = e.target.closest('[data-menu]');
+            
+            if (menuBtn) {
+                const dropdown = menuBtn.nextElementSibling;
+                if (dropdown && dropdown.classList.contains('dropdown')) {
+                    // Fecha outros dropdowns
+                    document.querySelectorAll('.dropdown.active').forEach(d => {
+                        if (d !== dropdown) d.classList.remove('active');
+                    });
+                    
+                    // Toggle atual
+                    dropdown.classList.toggle('active');
+                }
+            } else {
+                // Fecha todos se clicou fora
+                document.querySelectorAll('.dropdown.active').forEach(d => {
+                    d.classList.remove('active');
+                });
+            }
+        });
+
+        // Handlers de ações do menu
+        document.addEventListener('click', (e) => {
+            const item = e.target.closest('.dropdown-item[data-action]');
+            if (!item) return;
+            
+            const action = item.dataset.action;
+            
+            // Fecha dropdown
+            const dropdown = item.closest('.dropdown');
+            if (dropdown) dropdown.classList.remove('active');
+            
+            // Executa ação
+            if (typeof UICore !== 'undefined' && UICore.handleAction) {
+                UICore.handleAction(action);
+            }
+        });
+
+        console.log('✅ HTML Completo v3.1 carregado');
+    </script>
 </body>
 </html>
