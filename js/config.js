@@ -1,218 +1,266 @@
 /**
- * SINCRONIZAÇÃO COM PLANILHA v3.1.0
- * Intercepta operações locais e sincroniza com Sheets
- * 
- * ✅ CORRIGIDO: parâmetro location em createEvent
+ * CONFIGURAÇÕES DO SISTEMA v3.1.0
+ * Centralizador de todas as configurações
  */
 
-const SheetSync = {
-  /**
-   * Ativa sincronização
-   */
-  enable() {
-    this.interceptEventOperations();
-    this.interceptGuestOperations();
-    console.log('✅ Sincronização com planilha ativada');
+const CONFIG = {
+  // ========================================
+  // VERSÃO
+  // ========================================
+  VERSION: '3.1.0',
+  BUILD_DATE: '2025-01-20',
+  BUILD_TYPE: 'stable',
+  
+  // ========================================
+  // API
+  // ========================================
+  API: {
+    // URL padrão do script (substitua pela sua)
+    DEFAULT_URL: 'https://script.google.com/macros/s/SEU_SCRIPT_ID/exec',
+    
+    // URL atual (pode ser alterada pelo usuário)
+    get CURRENT_URL() {
+      return localStorage.getItem('apiUrl') || this.DEFAULT_URL;
+    },
+    
+    set CURRENT_URL(url) {
+      localStorage.setItem('apiUrl', url);
+    },
+    
+    // Timeout das requisições (ms)
+    TIMEOUT: 30000,
+    
+    // Retry automático
+    RETRY_ATTEMPTS: 3,
+    RETRY_DELAY: 1000
   },
   
   // ========================================
-  // EVENTOS
+  // STORAGE
   // ========================================
-  
-  /**
-   * Intercepta operações de eventos
-   */
-  interceptEventOperations() {
-    // Salva funções originais
-    const originalCreateEvent = State.createEvent;
-    const originalDeleteEvent = State.deleteEvent;
+  STORAGE: {
+    // Chave do localStorage
+    KEY: 'presenca_data_v3',
     
-    // Sobrescreve createEvent
-    State.createEvent = async function(name, date) {
-      console.log('📝 Criando evento:', name);
-      
-      try {
-        // 1. Cria na planilha primeiro
-        // ✅ CORRIGIDO: adicionado 4º parâmetro (location)
-        const result = await API.createEvent(name, date || '', '', '');
-        
-        if (!result.success) {
-          throw new Error(result.error || 'Erro ao criar evento na planilha');
-        }
-        
-        // 2. Cria local
-        const localEvent = {
-          id: result.data.eventId,
-          name: name,
-          date: date || '',
-          guests: [],
-          createdAt: new Date(),
-          sheetName: result.data.sheetName
-        };
-        
-        State.events.push(localEvent);
-        Storage.save();
-        
-        console.log('✅ Evento criado:', localEvent);
-        return localEvent;
-        
-      } catch (error) {
-        console.error('❌ Erro ao criar evento:', error);
-        alert('Erro ao criar evento: ' + error.message);
-        return null;
-      }
-    };
+    // Backup automático
+    AUTO_BACKUP: true,
+    BACKUP_INTERVAL: 300000, // 5 minutos
     
-    // Sobrescreve deleteEvent
-    State.deleteEvent = async function(eventId) {
-      console.log('🗑️ Deletando evento:', eventId);
-      
-      try {
-        // 1. Deleta da planilha
-        const result = await API.deleteEvent(eventId);
-        
-        if (!result.success) {
-          throw new Error(result.error || 'Erro ao deletar evento');
-        }
-        
-        // 2. Deleta local
-        const index = State.events.findIndex(e => e.id === eventId);
-        if (index > -1) {
-          State.events.splice(index, 1);
-          Storage.save();
-        }
-        
-        console.log('✅ Evento deletado');
-        return true;
-        
-      } catch (error) {
-        console.error('❌ Erro ao deletar evento:', error);
-        alert('Erro ao deletar evento: ' + error.message);
-        return false;
-      }
-    };
+    // Compressão
+    COMPRESS: true
   },
   
   // ========================================
-  // CONVIDADOS
+  // UI
+  // ========================================
+  UI: {
+    // Tema
+    THEME: 'light', // 'light' ou 'dark'
+    
+    // Animações
+    ANIMATIONS_ENABLED: true,
+    
+    // Modo compacto
+    COMPACT_MODE: false,
+    
+    // Notificações
+    NOTIFICATIONS_DURATION: 3000,
+    
+    // Auto-save visual
+    SHOW_AUTO_SAVE_INDICATOR: true
+  },
+  
+  // ========================================
+  // FEATURES
+  // ========================================
+  FEATURES: {
+    // Autocompletar nomes
+    AUTOCOMPLETE: true,
+    AUTOCOMPLETE_MIN_CHARS: 2,
+    
+    // QR Code sync
+    QR_SYNC: true,
+    
+    // Cloud backup
+    CLOUD_BACKUP: true,
+    
+    // Edição de tabs
+    EDITABLE_TABS: true,
+    
+    // Templates
+    COLUMN_TEMPLATES: true,
+    
+    // Estatísticas avançadas
+    ADVANCED_STATS: true
+  },
+  
+  // ========================================
+  // VALIDAÇÃO
+  // ========================================
+  VALIDATION: {
+    // Campos obrigatórios
+    REQUIRED_FIELDS: ['name'],
+    
+    // Tamanho máximo de nome
+    MAX_NAME_LENGTH: 100,
+    
+    // Tamanho máximo de nota
+    MAX_NOTE_LENGTH: 500,
+    
+    // Email regex
+    EMAIL_REGEX: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    
+    // Telefone regex (BR)
+    PHONE_REGEX: /^[0-9]{10,11}$/
+  },
+  
+  // ========================================
+  // EXPORTAÇÃO
+  // ========================================
+  EXPORT: {
+    // PDF
+    PDF: {
+      FORMAT: 'a4',
+      ORIENTATION: 'portrait',
+      MARGIN: 15,
+      FONT_SIZE: 10
+    },
+    
+    // CSV
+    CSV: {
+      SEPARATOR: ',',
+      ENCODING: 'UTF-8',
+      BOM: true
+    },
+    
+    // TXT
+    TXT: {
+      SEPARATOR: '\t',
+      ENCODING: 'UTF-8'
+    }
+  },
+  
+  // ========================================
+  // ERROR HANDLING
+  // ========================================
+  ERROR: {
+    // Mostrar stack trace
+    SHOW_STACK_TRACE: false,
+    
+    // Log no console
+    LOG_TO_CONSOLE: true,
+    
+    // Enviar para servidor (futuro)
+    SEND_TO_SERVER: false,
+    
+    // Salvar logs local
+    SAVE_LOGS_LOCAL: true,
+    MAX_LOGS: 100
+  },
+  
+  // ========================================
+  // SYNC
+  // ========================================
+  SYNC: {
+    // Intervalo de sincronização automática
+    AUTO_SYNC_INTERVAL: 60000, // 1 minuto
+    
+    // Sincronização em tempo real
+    REALTIME_SYNC: true,
+    
+    // Resolver conflitos
+    CONFLICT_RESOLUTION: 'server-wins' // 'server-wins', 'local-wins', 'merge'
+  },
+  
+  // ========================================
+  // MÉTODOS AUXILIARES
   // ========================================
   
   /**
-   * Intercepta operações de convidados
+   * Obtém configuração por caminho
+   * Exemplo: CONFIG.get('API.TIMEOUT')
    */
-  interceptGuestOperations() {
-    // Salva funções originais
-    const originalAddGuest = State.addGuest;
-    const originalUpdateGuest = State.updateGuestStatus;
-    const originalDeleteGuest = State.deleteGuest;
+  get(path) {
+    const keys = path.split('.');
+    let value = this;
     
-    // Sobrescreve addGuest
-    State.addGuest = async function(eventId, guest) {
-      console.log('👤 Adicionando convidado:', guest.name);
-      
-      try {
-        // 1. Adiciona na planilha
-        const result = await API.addGuest(eventId, guest);
-        
-        if (!result.success) {
-          throw new Error(result.error || 'Erro ao adicionar convidado');
-        }
-        
-        // 2. Adiciona local
-        const event = State.events.find(e => e.id === eventId);
-        if (!event) {
-          throw new Error('Evento não encontrado');
-        }
-        
-        const localGuest = {
-          id: result.data.guestId,
-          name: guest.name,
-          phone: guest.phone || '',
-          email: guest.email || '',
-          status: guest.status || 'pending',
-          notes: guest.notes || ''
-        };
-        
-        event.guests.push(localGuest);
-        Storage.save();
-        
-        console.log('✅ Convidado adicionado:', localGuest);
-        return localGuest;
-        
-      } catch (error) {
-        console.error('❌ Erro ao adicionar convidado:', error);
-        alert('Erro ao adicionar convidado: ' + error.message);
-        return null;
-      }
+    for (const key of keys) {
+      value = value[key];
+      if (value === undefined) return null;
+    }
+    
+    return value;
+  },
+  
+  /**
+   * Define configuração
+   * Exemplo: CONFIG.set('UI.THEME', 'dark')
+   */
+  set(path, newValue) {
+    const keys = path.split('.');
+    const lastKey = keys.pop();
+    let obj = this;
+    
+    for (const key of keys) {
+      if (!obj[key]) obj[key] = {};
+      obj = obj[key];
+    }
+    
+    obj[lastKey] = newValue;
+    
+    // Salva no localStorage se for configuração de usuário
+    this.saveUserPreferences();
+  },
+  
+  /**
+   * Salva preferências do usuário
+   */
+  saveUserPreferences() {
+    const prefs = {
+      theme: this.UI.THEME,
+      compactMode: this.UI.COMPACT_MODE,
+      apiUrl: this.API.CURRENT_URL,
+      autocomplete: this.FEATURES.AUTOCOMPLETE
     };
     
-    // Sobrescreve updateGuestStatus
-    State.updateGuestStatus = async function(eventId, guestId, status) {
-      console.log('🔄 Atualizando status:', guestId, status);
+    localStorage.setItem('user_preferences', JSON.stringify(prefs));
+  },
+  
+  /**
+   * Carrega preferências do usuário
+   */
+  loadUserPreferences() {
+    try {
+      const saved = localStorage.getItem('user_preferences');
+      if (!saved) return;
       
-      try {
-        // 1. Atualiza na planilha
-        const result = await API.updateGuest(eventId, guestId, { status: status });
-        
-        if (!result.success) {
-          throw new Error(result.error || 'Erro ao atualizar status');
-        }
-        
-        // 2. Atualiza local
-        const event = State.events.find(e => e.id === eventId);
-        if (event) {
-          const guest = event.guests.find(g => g.id === guestId);
-          if (guest) {
-            guest.status = status;
-            Storage.save();
-          }
-        }
-        
-        console.log('✅ Status atualizado');
-        return true;
-        
-      } catch (error) {
-        console.error('❌ Erro ao atualizar status:', error);
-        alert('Erro ao atualizar status: ' + error.message);
-        return false;
-      }
-    };
-    
-    // Sobrescreve deleteGuest
-    State.deleteGuest = async function(eventId, guestId) {
-      console.log('🗑️ Deletando convidado:', guestId);
+      const prefs = JSON.parse(saved);
       
-      try {
-        // 1. Deleta da planilha
-        const result = await API.deleteGuest(eventId, guestId);
-        
-        if (!result.success) {
-          throw new Error(result.error || 'Erro ao deletar convidado');
-        }
-        
-        // 2. Deleta local
-        const event = State.events.find(e => e.id === eventId);
-        if (event) {
-          const index = event.guests.findIndex(g => g.id === guestId);
-          if (index > -1) {
-            event.guests.splice(index, 1);
-            Storage.save();
-          }
-        }
-        
-        console.log('✅ Convidado deletado');
-        return true;
-        
-      } catch (error) {
-        console.error('❌ Erro ao deletar convidado:', error);
-        alert('Erro ao deletar convidado: ' + error.message);
-        return false;
-      }
-    };
+      if (prefs.theme) this.UI.THEME = prefs.theme;
+      if (prefs.compactMode !== undefined) this.UI.COMPACT_MODE = prefs.compactMode;
+      if (prefs.apiUrl) this.API.CURRENT_URL = prefs.apiUrl;
+      if (prefs.autocomplete !== undefined) this.FEATURES.AUTOCOMPLETE = prefs.autocomplete;
+      
+      console.log('✅ Preferências carregadas');
+    } catch (error) {
+      console.warn('⚠️ Erro ao carregar preferências:', error);
+    }
+  },
+  
+  /**
+   * Reset para padrão
+   */
+  resetToDefault() {
+    localStorage.removeItem('user_preferences');
+    localStorage.removeItem('apiUrl');
+    console.log('🔄 Configurações resetadas');
   }
 };
 
-// Exporta
-window.SheetSync = SheetSync;
+// Carrega preferências ao iniciar
+CONFIG.loadUserPreferences();
 
-console.log('🔄 Sheet Sync v3.1.0 carregado');
+// Exporta globalmente
+window.CONFIG = CONFIG;
+
+console.log(`⚙️ CONFIG v${CONFIG.VERSION} carregado`);
