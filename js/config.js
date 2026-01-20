@@ -16,7 +16,7 @@ const CONFIG = {
   // ========================================
   API: {
     // URL padrão do script (substitua pela sua)
-    DEFAULT_URL: 'https://script.google.com/macros/s/SEU_SCRIPT_ID/exec',
+    DEFAULT_URL: 'https://script.google.com/macros/s/AKfycbxsGjeJ_KnQIFlwKpZiCfA4YYGYucBcCbJWyyt8dBX-40YNOeK1O04oxeyDLwFZrwH4ig/exec',
     
     // URL atual (pode ser alterada pelo usuário)
     get CURRENT_URL() {
