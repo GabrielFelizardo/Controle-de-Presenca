@@ -187,34 +187,39 @@ const UICore = {
    * Deleta evento
    */
   async deleteEvent(eventId) {
-    const event = State.getEventById(eventId);
-    if (!event) return;
+  const event = State.getEventById(eventId);
+  if (!event) return;
+  
+  const confirmed = await this.showConfirm(
+    'DELETAR EVENTO',
+    `Tem certeza que deseja deletar "${event.name}"?\n\nEsta ação não pode ser desfeita.`
+  );
+  
+  if (!confirmed) return;
+  
+  try {
+    // ✅ CORRIGIDO: usa removeEvent ao invés de deleteEvent
+    const success = State.removeEvent(eventId);
     
-    const confirmed = await this.showConfirm(
-      'DELETAR EVENTO',
-      `Tem certeza que deseja deletar "${event.name}"?\n\nEsta ação não pode ser desfeita.`
-    );
-    
-    if (!confirmed) return;
-    
-    try {
-      await State.deleteEvent(eventId);
-      
-      // Se deletou o evento atual, vai pro primeiro
-      if (State.currentEventId === eventId) {
-        State.currentEventId = State.events[0]?.id || null;
-      }
-      
-      Storage.save();
-      this.renderTabs();
-      this.render();
-      this.showNotification('Evento deletado', 'success');
-      
-    } catch (error) {
-      console.error('Erro ao deletar evento:', error);
-      this.showError('Erro ao deletar evento');
+    if (!success) {
+      throw new Error('Falha ao remover evento');
     }
-  },
+    
+    // Se deletou o evento atual, vai pro primeiro
+    if (State.currentEventId === eventId) {
+      State.currentEventId = State.events[0]?.id || null;
+    }
+    
+    Storage.save();
+    this.renderTabs();
+    this.render();
+    this.showNotification('Evento deletado', 'success');
+    
+  } catch (error) {
+    console.error('Erro ao deletar evento:', error);
+    this.showError('Erro ao deletar evento');
+  }
+},
   
   // ========================================
   // ESTATÍSTICAS
