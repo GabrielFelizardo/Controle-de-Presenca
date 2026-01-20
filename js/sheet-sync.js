@@ -1,6 +1,8 @@
 /**
- * SINCRONIZAÇÃO COM PLANILHA v3.1
+ * SINCRONIZAÇÃO COM PLANILHA v3.1.0
  * Intercepta operações locais e sincroniza com Sheets
+ * 
+ * ✅ CORRIGIDO: parâmetro location em createEvent
  */
 
 const SheetSync = {
@@ -31,7 +33,8 @@ const SheetSync = {
       
       try {
         // 1. Cria na planilha primeiro
-        const result = await API.createEvent(name, date || '', '');
+        // ✅ CORRIGIDO: adicionado 4º parâmetro (location)
+        const result = await API.createEvent(name, date || '', '', '');
         
         if (!result.success) {
           throw new Error(result.error || 'Erro ao criar evento na planilha');
@@ -212,4 +215,4 @@ const SheetSync = {
 // Exporta
 window.SheetSync = SheetSync;
 
-console.log('🔄 Sheet Sync v3.1 carregado');
+console.log('🔄 Sheet Sync v3.1.0 carregado');
