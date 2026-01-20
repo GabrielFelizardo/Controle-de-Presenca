@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Controle de Presença v3.1</title>
+    <meta name="description" content="Sistema de Controle de Presença - Gerencie listas de convidados para eventos">
+    <title>Sistema de Controle de Presença v3.1.1</title>
     
     <!-- CSS - Ordem otimizada -->
     <link rel="stylesheet" href="css/styles.css">
@@ -11,7 +12,7 @@
     <link rel="stylesheet" href="css/templates-styles.css">
     <link rel="stylesheet" href="css/features.css">
     
-    <!-- CSS adicional para Login -->
+    <!-- CSS Login -->
     <style>
         /* ========================================
            LOGIN SCREEN
@@ -27,27 +28,33 @@
             z-index: 99999;
             align-items: center;
             justify-content: center;
-            padding: var(--space-4);
+            padding: 20px;
+            animation: fadeIn 0.3s ease-out;
         }
 
         .login-screen.active {
             display: flex;
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         .login-container {
-            background: var(--white);
-            padding: var(--space-6);
+            background: white;
+            padding: 40px;
             max-width: 500px;
             width: 100%;
             border-radius: 12px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            animation: loginSlideIn 0.5s ease-out;
+            animation: loginSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         @keyframes loginSlideIn {
             from {
                 opacity: 0;
-                transform: translateY(-30px) scale(0.95);
+                transform: translateY(-30px) scale(0.9);
             }
             to {
                 opacity: 1;
@@ -57,49 +64,120 @@
 
         .login-header {
             text-align: center;
-            margin-bottom: var(--space-5);
-            padding-bottom: var(--space-3);
-            border-bottom: 3px solid var(--black);
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 3px solid #000;
         }
 
         .login-header .heading-1 {
             font-size: clamp(28px, 5vw, 42px);
-            margin-bottom: var(--space-2);
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .login-header .label {
+            color: #666;
         }
 
         .login-form {
-            margin-bottom: var(--space-4);
+            margin-bottom: 24px;
+        }
+
+        .login-form .form-group {
+            margin-bottom: 0;
+        }
+
+        .login-form .input {
+            font-size: 16px;
+            padding: 14px 16px;
+            transition: all 0.3s;
+        }
+
+        .login-form .input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        #btn-login {
+            margin-top: 16px;
+            padding: 14px 24px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        #btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        #btn-login:active {
+            transform: translateY(0);
+        }
+
+        #btn-login.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        #login-status {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            min-height: 20px;
+            transition: all 0.3s;
+        }
+
+        #login-status.error {
+            color: #ff3333;
+            animation: shake 0.4s;
+        }
+
+        #login-status.loading {
+            color: #667eea;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
         }
 
         .login-info-box {
-            margin-top: var(--space-4);
-            padding: var(--space-3);
+            margin-top: 24px;
+            padding: 16px;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             border-left: 4px solid #667eea;
-            border-radius: 4px;
+            border-radius: 6px;
         }
 
         .login-info-box p {
             font-size: 13px;
             margin: 0;
             line-height: 1.6;
+            color: #333;
         }
 
-        #login-status {
-            margin-top: var(--space-2);
+        .login-info-box strong {
+            color: #000;
+        }
+
+        .login-footer {
+            margin-top: 20px;
             text-align: center;
-            font-size: 13px;
-            font-weight: var(--font-weight-bold);
-            min-height: 20px;
         }
 
-        /* Main app escondido até login */
-        #main-app {
-            display: none;
+        .login-footer p {
+            font-size: 11px;
+            color: #999;
+            margin: 0;
         }
 
         /* Loading spinner */
-        .login-spinner {
+        .spinner {
             display: inline-block;
             width: 16px;
             height: 16px;
@@ -115,38 +193,81 @@
             to { transform: rotate(360deg); }
         }
 
-        /* User info no header (após login) */
+        /* Main app */
+        #main-app {
+            display: none;
+        }
+
+        /* User info */
         .user-info {
-            display: flex;
+            display: none;
             align-items: center;
-            gap: var(--space-2);
-            margin-top: var(--space-2);
+            gap: 12px;
+            margin-top: 16px;
+            padding: 12px;
+            background: var(--gray-100);
+            border-radius: 8px;
+        }
+
+        .user-info.active {
+            display: flex;
         }
 
         .user-info-avatar {
-            width: 32px;
-            height: 32px;
-            background: var(--accent-primary);
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: var(--font-weight-bold);
-            font-size: 14px;
+            font-weight: 700;
+            font-size: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .user-info-details {
+            flex: 1;
             font-size: 12px;
         }
 
         .user-info-name {
-            font-weight: var(--font-weight-bold);
+            font-weight: 700;
             color: var(--gray-900);
+            margin-bottom: 2px;
         }
 
         .user-info-email {
             color: var(--gray-600);
+        }
+
+        .user-info-logout {
+            padding: 6px 12px;
+            font-size: 11px;
+            background: transparent;
+            border: 1px solid var(--gray-400);
+            color: var(--gray-700);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .user-info-logout:hover {
+            background: var(--accent-danger);
+            color: white;
+            border-color: var(--accent-danger);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 24px;
+            }
+
+            .login-header .heading-1 {
+                font-size: 24px;
+            }
         }
     </style>
 </head>
@@ -158,7 +279,7 @@
         <div class="login-container">
             <div class="login-header">
                 <h1 class="heading-1">CONTROLE DE PRESENÇA</h1>
-                <p class="label">Sistema de Gestão de Eventos v3.1</p>
+                <p class="label">Sistema de Gestão de Eventos v3.1.1</p>
             </div>
             
             <div id="login-form" class="login-form">
@@ -186,14 +307,12 @@
                 <p><strong>💡 Como funciona:</strong></p>
                 <p style="margin-top: 8px;">
                     Digite seu email para acessar seus eventos. Seus dados ficam salvos 
-                    no Google Drive e você pode acessar de qualquer computador!
+                    no Google Drive e você pode acessar de qualquer lugar!
                 </p>
             </div>
 
-            <div style="margin-top: var(--space-3); text-align: center;">
-                <p style="font-size: 11px; color: var(--gray-600);">
-                    Primeira vez? Digite qualquer email válido para começar.
-                </p>
+            <div class="login-footer">
+                <p>Primeira vez? Digite qualquer email válido para começar.</p>
             </div>
         </div>
     </div>
@@ -263,7 +382,7 @@
                             <button class="dropdown-item" onclick="window.open('https://drive.google.com')">
                                 📊 Abrir Minha Planilha
                             </button>
-                            <button class="dropdown-item" onclick="AuthSystem.switchAccount()">
+                            <button class="dropdown-item" onclick="if(typeof AuthSystem !== 'undefined') AuthSystem.switchAccount()">
                                 🔄 Trocar de Conta
                             </button>
                             <div class="dropdown-divider"></div>
@@ -290,15 +409,18 @@
             <header class="header">
                 <div>
                     <h1 class="heading-1">CONTROLE DE PRESENÇA</h1>
-                    <p class="label">Sistema de Gestão de Eventos v3.1</p>
+                    <p class="label">Sistema de Gestão de Eventos v3.1.1</p>
                     
-                    <!-- User info (após login) -->
-                    <div class="user-info" style="display: none;" id="user-info-display">
+                    <!-- User info -->
+                    <div class="user-info" id="user-info-display">
                         <div class="user-info-avatar" id="user-avatar">U</div>
                         <div class="user-info-details">
                             <div class="user-info-name" id="user-name">Usuário</div>
                             <div class="user-info-email" id="user-email">email@example.com</div>
                         </div>
+                        <button class="user-info-logout" onclick="if(typeof AuthSystem !== 'undefined') AuthSystem.logout()">
+                            Sair
+                        </button>
                     </div>
                     
                     <span class="auto-save" id="auto-save">✓ SINCRONIZADO</span>
@@ -312,11 +434,7 @@
             <div id="event-content"></div>
         </div>
 
-        <!-- ========================================
-             MODALS
-             ======================================== -->
-
-        <!-- MODAL: CONFIRMAÇÃO -->
+        <!-- MODALS -->
         <div class="modal" id="confirm-modal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -330,7 +448,6 @@
             </div>
         </div>
 
-        <!-- MODAL: EDITAR CONVIDADO -->
         <div class="modal" id="edit-modal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -344,7 +461,6 @@
             </div>
         </div>
 
-        <!-- MODAL: NOVO EVENTO -->
         <div class="modal" id="new-event-modal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -365,7 +481,6 @@
             </div>
         </div>
 
-        <!-- MODAL: ADICIONAR RÁPIDO -->
         <div class="modal" id="quick-add-modal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -379,7 +494,6 @@
             </div>
         </div>
 
-        <!-- MODAL: EDITAR EM LOTE -->
         <div class="modal" id="bulk-edit-modal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -397,7 +511,6 @@
             </div>
         </div>
 
-        <!-- MODAL: ESTATÍSTICAS -->
         <div class="modal" id="stats-modal">
             <div class="modal-content large">
                 <div class="modal-header">
@@ -410,7 +523,6 @@
             </div>
         </div>
 
-        <!-- MODAL: RESTAURAR BACKUP -->
         <div class="modal" id="restore-modal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -430,7 +542,6 @@
             </div>
         </div>
 
-        <!-- MODAL: AJUDA -->
         <div class="modal" id="help-modal">
             <div class="modal-content large">
                 <div class="modal-header">
@@ -464,7 +575,6 @@
             </div>
         </div>
 
-        <!-- MODAL: ATALHOS -->
         <div class="modal" id="shortcuts-modal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -484,7 +594,6 @@
             </div>
         </div>
 
-        <!-- MODAL: SOBRE -->
         <div class="modal" id="about-modal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -493,7 +602,7 @@
                 <div style="line-height: 1.8; text-align: center; padding: var(--space-4);">
                     <p style="font-size: 48px; margin-bottom: 1rem;">📋</p>
                     <h3>SISTEMA DE CONTROLE DE PRESENÇA</h3>
-                    <p style="margin: 1rem 0; color: var(--gray-600);">Versão 3.1</p>
+                    <p style="margin: 1rem 0; color: var(--gray-600);">Versão 3.1.1</p>
                     <p>Sistema completo para gerenciar listas de convidados em eventos.</p>
                     <p style="margin-top: 2rem;">Baseado em Google Sheets com login por email.</p>
                     <p style="margin-top: 1rem; font-size: 14px;">
@@ -511,124 +620,88 @@
         </div>
     </div>
 
-    <!-- ========================================
-         BIBLIOTECAS EXTERNAS
-         ======================================== -->
+    <!-- BIBLIOTECAS EXTERNAS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 
-    <!-- 1. CORE SYSTEM (Base do sistema) -->
+    <!-- CORE SYSTEM -->
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/validator.js"></script>
     <script src="js/state.js"></script>
     <script src="js/storage.js"></script>
     
-    <!-- 2. API & SYNC (Conexão com Google Sheets) -->
+    <!-- API & SYNC -->
     <script src="js/api-client.js"></script>
     <script src="js/sheet-sync.js"></script>
     <script src="js/auth-system.js"></script>
     
-    <!-- 3. FEATURES (Funcionalidades extras) -->
+    <!-- FEATURES -->
     <script src="js/exports.js"></script>
     <script src="js/name-autocomplete.js"></script>
     <script src="js/editable-tabs.js"></script>
     
-    <!-- 4. UI (Interface do usuário) -->
+    <!-- UI -->
     <script src="js/ui-core.js"></script>
     
-    <!-- 5. HELPERS (Utilidades) -->
+    <!-- HELPERS -->
     <script src="js/cloud-assist.js"></script>
     <script src="js/qr-sync.js"></script>
     <script src="js/usability-fixes.js"></script>
     
-    <!-- 6. ERROR HANDLING -->
+    <!-- ERROR HANDLING -->
     <script src="js/error-boundary.js"></script>
     <script src="js/error-handler.js"></script>
     
-    <!-- 7. APP INIT (Inicialização - SEMPRE POR ÚLTIMO) -->
+    <!-- APP INIT -->
     <script src="js/app.js"></script>
 
-    <!-- Script adicional para melhorar UX do login -->
+    <!-- SCRIPTS DE INTEGRAÇÃO -->
     <script>
-        // Melhora visual do user info após login
-        if (typeof AuthSystem !== 'undefined') {
-            const originalUpdateUserInfo = AuthSystem.updateUserInfo;
-            AuthSystem.updateUserInfo = function() {
-                if (!this.currentUser) return;
+        // Handlers de modais
+        document.addEventListener('click', (e) => {
+            // Criar evento
+            if (e.target.closest('[data-modal-action="create-event"]')) {
+                const nameInput = document.getElementById('new-event-name');
+                const dateInput = document.getElementById('new-event-date');
                 
-                // Atualiza display
-                const userInfoDisplay = document.getElementById('user-info-display');
-                const userAvatar = document.getElementById('user-avatar');
-                const userName = document.getElementById('user-name');
-                const userEmail = document.getElementById('user-email');
-                
-                if (userInfoDisplay) userInfoDisplay.style.display = 'flex';
-                if (userName) userName.textContent = this.currentUser.name || 'Usuário';
-                if (userEmail) userEmail.textContent = this.currentUser.email;
-                if (userAvatar) {
-                    const initial = (this.currentUser.name || this.currentUser.email || 'U').charAt(0).toUpperCase();
-                    userAvatar.textContent = initial;
+                if (!nameInput || !nameInput.value.trim()) {
+                    alert('Digite o nome do evento!');
+                    return;
                 }
                 
-                // Chama função original se existir
-                if (originalUpdateUserInfo) {
-                    originalUpdateUserInfo.call(this);
-                }
-            };
-        }
-
-        // Handler para criar evento via modal
-        document.addEventListener('click', (e) => {
-            const btn = e.target.closest('[data-modal-action="create-event"]');
-            if (!btn) return;
-            
-            const nameInput = document.getElementById('new-event-name');
-            const dateInput = document.getElementById('new-event-date');
-            
-            if (!nameInput || !nameInput.value.trim()) {
-                alert('Digite o nome do evento!');
-                return;
-            }
-            
-            const name = nameInput.value.trim();
-            const date = dateInput ? dateInput.value : '';
-            
-            // Cria evento
-            if (typeof State !== 'undefined') {
-                State.addEvent(name, date);
-                State.currentEventId = State.events[State.events.length - 1].id;
+                const name = nameInput.value.trim();
+                const date = dateInput ? dateInput.value : '';
                 
-                if (typeof Storage !== 'undefined') Storage.save();
-                if (typeof UICore !== 'undefined') {
-                    UICore.renderTabs();
-                    UICore.render();
-                    UICore.closeModal('new-event-modal');
-                    UICore.showNotification('Evento criado!', 'success');
+                if (typeof State !== 'undefined') {
+                    State.addEvent(name, date);
+                    State.currentEventId = State.events[State.events.length - 1].id;
+                    
+                    if (typeof Storage !== 'undefined') Storage.save();
+                    if (typeof UICore !== 'undefined') {
+                        UICore.renderTabs();
+                        UICore.render();
+                        UICore.closeModal('new-event-modal');
+                        UICore.showNotification('Evento criado!', 'success');
+                    }
+                    
+                    nameInput.value = '';
+                    if (dateInput) dateInput.value = '';
                 }
-                
-                // Limpa inputs
-                nameInput.value = '';
-                if (dateInput) dateInput.value = '';
             }
-        });
-
-        // Handler para cancelar modais
-        document.addEventListener('click', (e) => {
-            const btn = e.target.closest('[data-modal-action="cancel"]');
-            if (!btn) return;
             
-            const modal = btn.closest('.modal');
-            if (modal && typeof UICore !== 'undefined') {
-                UICore.closeModal(modal.id);
+            // Cancelar modais
+            if (e.target.closest('[data-modal-action="cancel"]')) {
+                const modal = e.target.closest('.modal');
+                if (modal && typeof UICore !== 'undefined') {
+                    UICore.closeModal(modal.id);
+                }
             }
-        });
-
-        // Fecha modal ao clicar no fundo
-        document.addEventListener('click', (e) => {
+            
+            // Fechar modal clicando no fundo
             if (e.target.classList.contains('modal')) {
                 if (typeof UICore !== 'undefined') {
                     UICore.closeModal(e.target.id);
@@ -643,40 +716,33 @@
             if (menuBtn) {
                 const dropdown = menuBtn.nextElementSibling;
                 if (dropdown && dropdown.classList.contains('dropdown')) {
-                    // Fecha outros dropdowns
                     document.querySelectorAll('.dropdown.active').forEach(d => {
                         if (d !== dropdown) d.classList.remove('active');
                     });
-                    
-                    // Toggle atual
                     dropdown.classList.toggle('active');
                 }
             } else {
-                // Fecha todos se clicou fora
                 document.querySelectorAll('.dropdown.active').forEach(d => {
                     d.classList.remove('active');
                 });
             }
         });
 
-        // Handlers de ações do menu
+        // Ações do menu
         document.addEventListener('click', (e) => {
             const item = e.target.closest('.dropdown-item[data-action]');
             if (!item) return;
             
             const action = item.dataset.action;
-            
-            // Fecha dropdown
             const dropdown = item.closest('.dropdown');
             if (dropdown) dropdown.classList.remove('active');
             
-            // Executa ação
             if (typeof UICore !== 'undefined' && UICore.handleAction) {
                 UICore.handleAction(action);
             }
         });
 
-        console.log('✅ HTML Completo v3.1 carregado');
+        console.log('✅ HTML v3.1.1 carregado');
     </script>
 </body>
 </html>
