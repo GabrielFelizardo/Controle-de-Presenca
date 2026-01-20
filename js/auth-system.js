@@ -1,6 +1,6 @@
 /**
  * AUTH SYSTEM v3.1.1
- * ✅ CORRIGIDO: Melhora UX e integração com API
+ * ✅ CORRIGIDO: Usa getOrCreateSpreadsheet ao invés de validateUser
  */
 
 const AuthSystem = {
@@ -50,7 +50,8 @@ const AuthSystem = {
       
       this.showLoading('Conectando...');
       
-      const response = await API.validateUser(this.currentUser.email);
+      // ✅ CORRIGIDO: Usa getOrCreateSpreadsheet
+      const response = await API.getOrCreateSpreadsheet(this.currentUser.email);
       
       if (response.success) {
         this.isAuthenticated = true;
@@ -79,7 +80,8 @@ const AuthSystem = {
     try {
       this.showLoading('Autenticando...');
       
-      const response = await API.validateUser(email);
+      // ✅ CORRIGIDO: Usa getOrCreateSpreadsheet
+      const response = await API.getOrCreateSpreadsheet(email);
       
       if (response.success) {
         this.currentUser = {
