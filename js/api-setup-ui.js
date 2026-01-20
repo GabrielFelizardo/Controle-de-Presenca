@@ -49,7 +49,7 @@ const APISetup = {
               class="input" 
               id="setup-api-url" 
               placeholder="https://script.google.com/macros/s/..."
-              value="https://script.google.com/macros/s/AKfycbyVVle9p5SFCsbBrQF95JgL14WE5Ecguo9Po6E3gq17yVaHzZ-Vl8J_TX3SHOHdaDZc/exec"
+              value="https://script.google.com/macros/s/AKfycbxsGjeJ_KnQIFlwKpZiCfA4YYGYucBcCbJWyyt8dBX-40YNOeK1O04oxeyDLwFZrwH4ig/exec"
             >
             <p style="font-size: 12px; color: var(--gray-600); margin-top: var(--space-2);">
               ℹ️ Você já tem a URL configurada! Se precisar alterar, cole aqui.
