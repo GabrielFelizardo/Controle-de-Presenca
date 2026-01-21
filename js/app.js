@@ -1,6 +1,7 @@
 /**
- * APP.JS v3.1.2
+ * APP.JS v3.1.3
  * ✅ CORRIGIDO: Ativa SheetSync após autenticação
+ * ✅ CORRIGIDO: Sincroniza apenas eventos com colunas definidas
  */
 
 const App = {
@@ -149,35 +150,52 @@ const App = {
     }
   },
   
-  // ✅ NOVO: Sincroniza eventos que existem só localmente
+  // ✅ CORRIGIDO: Sincroniza eventos que existem só localmente
   async syncLocalEventsToSheet() {
     if (!State.events || State.events.length === 0) return;
     
     console.log('🔄 Verificando eventos para sincronizar...');
     
     for (const event of State.events) {
-      // Se evento não tem sheetName, precisa ser criado no Sheets
-      if (!event.sheetName && !event.syncedToSheet) {
+      // ✅ CORREÇÃO: Só sincroniza se evento TEM COLUNAS definidas e TEM CONVIDADOS
+      // Se não tem colunas ainda, vai sincronizar quando adicionar primeiro convidado
+      if (!event.sheetName && !event.syncedToSheet && event.columns && event.columns.length > 0 && event.guests && event.guests.length > 0) {
         try {
-          console.log(`📤 Criando evento "${event.name}" no Google Sheets...`);
+          console.log(`📤 Criando evento "${event.name}" no Google Sheets com colunas:`, event.columns);
           
           const result = await API.createEvent(
             AuthSystem.spreadsheetId,
             event.name,
             event.date || '',
             '',
-            ''
+            event.columns  // ← PASSA AS COLUNAS CORRETAS!
           );
           
           if (result.success) {
-            event.sheetName = result.data.sheetName;
+            event.sheetName = result.data.sheetName || result.data.eventId;
             event.syncedToSheet = true;
             console.log(`✅ Evento "${event.name}" sincronizado`);
+            
+            // Agora adiciona os convidados
+            for (const guest of event.guests) {
+              try {
+                await API.addGuest(
+                  AuthSystem.spreadsheetId,
+                  event.sheetName,
+                  guest
+                );
+                console.log(`✅ Convidado "${guest[event.columns[0]]}" adicionado`);
+              } catch (error) {
+                console.error(`❌ Erro ao adicionar convidado:`, error);
+              }
+            }
           }
           
         } catch (error) {
           console.error(`❌ Erro ao sincronizar evento "${event.name}":`, error);
         }
+      } else if (!event.sheetName && !event.syncedToSheet) {
+        console.log(`ℹ️ Evento "${event.name}" ainda sem colunas - será sincronizado ao adicionar primeiro convidado`);
       }
     }
     
