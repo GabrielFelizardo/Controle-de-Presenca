@@ -1,6 +1,7 @@
 /**
- * SINCRONIZAÇÃO COM PLANILHA v3.2.0
- * ✅ CORRIGIDO: Sincroniza TUDO - convidados, edições, colunas, renomeações
+ * SINCRONIZAÇÃO COM PLANILHA v3.2.1
+ * ✅ CORRIGIDO: Cria evento no Sheets APENAS quando adicionar primeiro convidado
+ * ✅ CORRIGIDO: Sempre usa colunas personalizadas do evento
  */
 
 const SheetSync = {
@@ -39,75 +40,23 @@ const SheetSync = {
     // Salva função original
     const originalAddEvent = State.addEvent;
     
-    // ✅ Sobrescreve addEvent
+    // ✅ CORRIGIDO: Cria evento SÓ LOCALMENTE (Sheets só quando adicionar primeiro convidado)
     State.addEvent = async function(name, date) {
-      console.log('📝 Criando evento:', name);
+      console.log('📝 Criando evento (local):', name);
       
-      // Verifica se tem spreadsheetId
-      if (!AuthSystem.spreadsheetId) {
-        console.warn('⚠️ Sem spreadsheetId - criando apenas localmente');
-        return originalAddEvent.call(State, name, date);
-      }
+      // Cria apenas localmente
+      const localEvent = originalAddEvent.call(State, name, date);
       
-      // Mostra loading
-      if (typeof UICore !== 'undefined') {
-        UICore.showLoadingOverlay('Criando evento no Google Drive...');
-      }
+      // Marca que ainda não foi sincronizado
+      localEvent.syncedToSheet = false;
+      localEvent.sheetName = null;
       
-      try {
-        const result = await API.createEvent(
-          AuthSystem.spreadsheetId,
-          name,
-          date || '',
-          '',
-          ''
-        );
-        
-        if (!result.success) {
-          throw new Error(result.error || 'Erro ao criar evento na planilha');
-        }
-        
-        // Cria local
-        const localEvent = {
-          id: result.data.eventId || Utils.generateId(),
-          name: name,
-          date: date || '',
-          guests: [],
-          columns: [],
-          method: null,
-          createdAt: new Date(),
-          sheetName: result.data.sheetName,
-          syncedToSheet: true
-        };
-        
-        State.events.push(localEvent);
-        Storage.save();
-        
-        console.log('✅ Evento criado na planilha:', localEvent);
-        
-        // Esconde loading
-        if (typeof UICore !== 'undefined') {
-          UICore.hideLoadingOverlay();
-          UICore.showNotification('✅ Evento criado no Google Drive!', 'success');
-        }
-        
-        return localEvent;
-        
-      } catch (error) {
-        console.error('❌ Erro ao criar evento no Sheets:', error);
-        
-        // Esconde loading
-        if (typeof UICore !== 'undefined') {
-          UICore.hideLoadingOverlay();
-          UICore.showError('Erro ao salvar no Google Drive: ' + error.message);
-        }
-        
-        // Cria localmente mesmo com erro
-        console.log('📝 Criando evento apenas localmente...');
-        const localEvent = originalAddEvent.call(State, name, date);
-        localEvent.syncedToSheet = false;
-        return localEvent;
-      }
+      Storage.save();
+      
+      console.log('✅ Evento criado localmente:', localEvent);
+      console.log('ℹ️ Será criado no Sheets quando adicionar primeiro convidado');
+      
+      return localEvent;
     };
     
     // ✅ NOVO: Intercepta mudança de colunas
@@ -211,6 +160,61 @@ const SheetSync = {
         throw new Error('Evento não encontrado');
       }
       
+      // ✅ NOVO: Se evento ainda não foi criado no Sheets, cria agora (com as colunas corretas!)
+      if (!event.sheetName && AuthSystem.spreadsheetId && event.columns && event.columns.length > 0) {
+        console.log('📤 Criando evento no Sheets com colunas:', event.columns);
+        
+        // Mostra loading
+        if (typeof UICore !== 'undefined') {
+          UICore.showLoadingOverlay('Criando evento no Google Drive...');
+        }
+        
+        try {
+          const result = await API.createEvent(
+            AuthSystem.spreadsheetId,
+            event.name,
+            event.date || '',
+            '',
+            event.columns  // ← PASSA AS COLUNAS CORRETAS!
+          );
+          
+          if (result.success) {
+            event.sheetName = result.data.sheetName || result.data.eventId;
+            event.syncedToSheet = true;
+            Storage.save();
+            
+            console.log('✅ Evento criado no Sheets:', event.sheetName);
+          } else {
+            throw new Error(result.error || 'Erro ao criar evento');
+          }
+          
+          if (typeof UICore !== 'undefined') {
+            UICore.hideLoadingOverlay();
+          }
+          
+        } catch (error) {
+          console.error('❌ Erro ao criar evento no Sheets:', error);
+          
+          if (typeof UICore !== 'undefined') {
+            UICore.hideLoadingOverlay();
+            UICore.showError('Erro ao criar no Google Drive: ' + error.message);
+          }
+          
+          // Continua e adiciona localmente
+          console.log('📝 Adicionando convidado apenas localmente...');
+          const localGuest = {
+            id: guest.id || Utils.generateId(),
+            status: guest.status || 'pending'
+          };
+          event.columns.forEach(col => {
+            localGuest[col] = guest[col] || '';
+          });
+          event.guests.push(localGuest);
+          Storage.save();
+          return localGuest;
+        }
+      }
+      
       // ✅ IMPORTANTE: Garante que guest tem todas as colunas
       const completeGuest = {
         id: guest.id || Utils.generateId(),
@@ -226,6 +230,7 @@ const SheetSync = {
       if (!event.sheetName || !AuthSystem.spreadsheetId) {
         console.log('📝 Adicionando convidado apenas localmente');
         event.guests.push(completeGuest);
+        State.clearStatsCache(eventId);
         Storage.save();
         return completeGuest;
       }
@@ -248,7 +253,7 @@ const SheetSync = {
         }
         
         // Atualiza ID se API retornou um novo
-        if (result.data.guestId) {
+        if (result.data && result.data.guestId) {
           completeGuest.id = result.data.guestId;
         }
         
@@ -279,6 +284,7 @@ const SheetSync = {
         // Adiciona localmente mesmo com erro
         console.log('📝 Adicionando convidado apenas localmente...');
         event.guests.push(completeGuest);
+        State.clearStatsCache(eventId);
         Storage.save();
         return completeGuest;
       }
