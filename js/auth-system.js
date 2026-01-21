@@ -1,6 +1,6 @@
 /**
- * AUTH SYSTEM v3.1.1
- * ✅ CORRIGIDO: Usa getOrCreateSpreadsheet ao invés de validateUser
+ * AUTH SYSTEM v3.1.2
+ * ✅ CORRIGIDO: Inicializa App após login
  */
 
 const AuthSystem = {
@@ -9,7 +9,7 @@ const AuthSystem = {
   spreadsheetId: null,
   
   init() {
-    console.log('🔐 Auth System v3.1.1 iniciando...');
+    console.log('🔐 Auth System v3.1.2 iniciando...');
     
     try {
       this.loadSavedUser();
@@ -50,15 +50,20 @@ const AuthSystem = {
       
       this.showLoading('Conectando...');
       
-      // ✅ CORRIGIDO: Usa getOrCreateSpreadsheet
       const response = await API.getOrCreateSpreadsheet(this.currentUser.email);
       
       if (response.success) {
         this.isAuthenticated = true;
         this.spreadsheetId = response.data.spreadsheetId;
+        
+        // ✅ NOVO: Salva spreadsheetId no localStorage também
+        localStorage.setItem('spreadsheetId', this.spreadsheetId);
+        
+        console.log('✅ Auto-login bem-sucedido');
+        console.log('📊 SpreadsheetId:', this.spreadsheetId);
+        
         this.hideLoginScreen();
         this.showMainApp();
-        console.log('✅ Auto-login bem-sucedido');
       } else {
         throw new Error(response.error || 'Falha na validação');
       }
@@ -80,7 +85,6 @@ const AuthSystem = {
     try {
       this.showLoading('Autenticando...');
       
-      // ✅ CORRIGIDO: Usa getOrCreateSpreadsheet
       const response = await API.getOrCreateSpreadsheet(email);
       
       if (response.success) {
@@ -93,12 +97,20 @@ const AuthSystem = {
         this.isAuthenticated = true;
         this.spreadsheetId = response.data.spreadsheetId;
         
+        // Salva no localStorage
         localStorage.setItem('auth_user', JSON.stringify(this.currentUser));
+        localStorage.setItem('spreadsheetId', this.spreadsheetId);
+        
+        // ✅ NOVO: Adiciona email ao histórico
+        this.addToEmailHistory(email);
+        
+        console.log('✅ Login bem-sucedido:', email);
+        console.log('📊 SpreadsheetId:', this.spreadsheetId);
+        console.log('📄 Planilha URL:', response.data.spreadsheetUrl);
         
         this.hideLoginScreen();
         this.showMainApp();
         
-        console.log('✅ Login bem-sucedido:', email);
         return true;
         
       } else {
@@ -119,6 +131,12 @@ const AuthSystem = {
       this.spreadsheetId = null;
       
       localStorage.removeItem('auth_user');
+      localStorage.removeItem('spreadsheetId');
+      
+      // ✅ NOVO: Desativa SheetSync
+      if (typeof SheetSync !== 'undefined') {
+        SheetSync.disable();
+      }
       
       this.showLoginScreen();
       this.hideMainApp();
@@ -152,17 +170,76 @@ const AuthSystem = {
     }
   },
   
+  // ✅ NOVO: Histórico de emails
+  addToEmailHistory(email) {
+    try {
+      let history = JSON.parse(localStorage.getItem('email_history') || '[]');
+      
+      // Remove duplicatas
+      history = history.filter(e => e !== email);
+      
+      // Adiciona no início
+      history.unshift(email);
+      
+      // Limita a 5
+      history = history.slice(0, 5);
+      
+      localStorage.setItem('email_history', JSON.stringify(history));
+    } catch (error) {
+      console.warn('⚠️ Erro ao salvar histórico de emails:', error);
+    }
+  },
+  
+  getEmailHistory() {
+    try {
+      return JSON.parse(localStorage.getItem('email_history') || '[]');
+    } catch (error) {
+      return [];
+    }
+  },
+  
   // UI METHODS
   
   showLoginScreen() {
     const loginScreen = document.getElementById('login-screen');
     if (loginScreen) {
       loginScreen.classList.add('active');
+      
+      // ✅ NOVO: Adiciona datalist com histórico
       setTimeout(() => {
+        this.addEmailDatalist();
         const emailInput = document.getElementById('email-input');
         if (emailInput) emailInput.focus();
       }, 300);
     }
+  },
+  
+  // ✅ NOVO: Adiciona datalist com histórico de emails
+  addEmailDatalist() {
+    const emailInput = document.getElementById('email-input');
+    if (!emailInput) return;
+    
+    const history = this.getEmailHistory();
+    if (history.length === 0) return;
+    
+    // Remove datalist anterior se existir
+    const oldDatalist = document.getElementById('email-history-datalist');
+    if (oldDatalist) oldDatalist.remove();
+    
+    // Cria novo datalist
+    const datalist = document.createElement('datalist');
+    datalist.id = 'email-history-datalist';
+    
+    history.forEach(email => {
+      const option = document.createElement('option');
+      option.value = email;
+      datalist.appendChild(option);
+    });
+    
+    emailInput.setAttribute('list', 'email-history-datalist');
+    emailInput.parentElement.appendChild(datalist);
+    
+    console.log('📧 Histórico de emails:', history);
   },
   
   hideLoginScreen() {
@@ -180,9 +257,12 @@ const AuthSystem = {
     
     this.updateUserInfo();
     
-    // Inicializa app
+    // ✅ CORRIGIDO: Inicializa app DEPOIS de mostrar interface
     if (typeof App !== 'undefined' && App.init) {
-      setTimeout(() => App.init(), 100);
+      setTimeout(() => {
+        console.log('🚀 Inicializando App após login...');
+        App.init();
+      }, 100);
     }
   },
   
@@ -302,4 +382,4 @@ const AuthSystem = {
 };
 
 window.AuthSystem = AuthSystem;
-console.log('🔐 Auth System v3.1.1 carregado');
+console.log('🔐 Auth System v3.1.2 carregado');
