@@ -75,15 +75,15 @@ const API = {
     return await this.request('getOrCreateSpreadsheet', { email });
   },
   
-  async createEvent(spreadsheetId, name, date = '', description = '', location = '') {
-    return await this.request('createEvent', {
-      spreadsheetId,
-      name,
-      date,
-      description,
-      location
-    });
-  },
+  async createEvent(spreadsheetId, name, date = '', description = '', columns = []) {
+  return await this.request('createEvent', {
+    spreadsheetId,
+    name,
+    date,
+    description,
+    columns 
+  });
+ }
   
   async listEvents(spreadsheetId) {
     return await this.request('getEvents', { spreadsheetId });
