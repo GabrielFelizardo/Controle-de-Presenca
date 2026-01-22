@@ -75,16 +75,20 @@ const SheetSync = {
         try {
           console.log('📤 Atualizando cabeçalhos na planilha...');
           
-          // Como não temos endpoint específico, vamos recriar a aba
-          // com os headers corretos
+          // CORREÇÃO: Passamos event.columns como o 4º argumento
           const result = await API.updateEvent(
             AuthSystem.spreadsheetId,
             event.sheetName,
-            event.name
+            event.name,    // Nome atual
+            event.columns  // <--- AS NOVAS COLUNAS AQUI
           );
           
           if (result.success) {
             console.log('✅ Cabeçalhos atualizados');
+            // Se o nome mudou na resposta (raro aqui, mas possível), atualiza
+            if (result.data && result.data.eventId) {
+                event.sheetName = result.data.eventId;
+            }
           }
           
         } catch (error) {
