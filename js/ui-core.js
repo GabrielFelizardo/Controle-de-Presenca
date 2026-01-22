@@ -2,8 +2,7 @@
  * UI-CORE.JS v3.1.1
  * Sistema consolidado de Interface do Usuário
  * ✅ CORRIGIDO: Adicionadas funções showLoadingOverlay e hideLoadingOverlay
- * 
- * Responsabilidades:
+ * * Responsabilidades:
  * - Renderização de eventos
  * - Gestão de convidados
  * - Modais e notificações
@@ -17,10 +16,15 @@ const UICore = {
   // INICIALIZAÇÃO
   // ========================================
   
+  // Flag para evitar dupla inicialização
+  initialized: false,
+
   /**
    * Inicializa sistema de UI
    */
   init() {
+    if (this.initialized) return; // ✅ Evita rodar duas vezes
+    
     console.log('🎨 UICore v3.1.1 inicializando...');
     
     try {
@@ -36,6 +40,7 @@ const UICore = {
         this.renderEmptyState();
       }
       
+      this.initialized = true; // ✅ Marca como iniciado
       console.log('✅ UICore inicializado');
     } catch (error) {
       console.error('❌ Erro ao inicializar UICore:', error);
@@ -66,18 +71,14 @@ const UICore = {
     
     try {
       container.innerHTML = `
-        <!-- ESTATÍSTICAS -->
         <div class="stats-grid">
           ${this.renderStats(event)}
         </div>
         
-        <!-- ESCOLHA DO MÉTODO -->
         ${!event.method ? this.renderMethodChoice() : ''}
         
-        <!-- CONTEÚDO ESPECÍFICO DO MÉTODO -->
         ${this.renderMethodContent(event)}
         
-        <!-- TABELA DE CONVIDADOS -->
         ${event.guests && event.guests.length > 0 ? this.renderGuestsTable(event) : ''}
       `;
       
@@ -465,7 +466,6 @@ const UICore = {
           >
         </div>
         
-        <!-- Barra de ações -->
         <div style="padding: var(--space-3); border-bottom: 2px solid var(--gray-200); display: flex; gap: var(--space-2); flex-wrap: wrap;">
           <button class="btn btn-success" data-action="quick-add">
             + ADICIONAR MAIS
